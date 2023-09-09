@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.coderiders</groupId>
-	<artifactId>Aggregate-Service</artifactId>
+	<artifactId>aggregate-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Aggregate-Service</name>
+	<name>aggregate-service</name>
 	<description>Aggregate Service for the Book Tracer Application</description>
 	<properties>
 		<java.version>17</java.version>
