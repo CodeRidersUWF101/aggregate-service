@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class AggregateControllerAdvice {
 
-    @Value("${app.logging}")
-    private String loggingLevel;
-
     @ExceptionHandler(AggregateException.class)
     private ResponseEntity<AggregateErrorResponse> aggregateExceptionHandler(AggregateException ex) {
         AggregateErrorResponse errorResponse = new AggregateErrorResponse();
@@ -66,30 +63,10 @@ public class AggregateControllerAdvice {
             StackTraceElement ele = ex.getStackTrace()[0];
             builder.append("\nClass Name: ").append(ele.getClassName());
             builder.append("\nMethod Name: ").append(ele.getMethodName());
+            builder.append("\nFile Name: ").append(ele.getFileName());
+            builder.append("\nLine Number: ").append(ele.getLineNumber());
 
-            if (shouldLogInDebug()) {
-                builder.append("\nFile Name: ").append(ele.getFileName());
-                builder.append("\nLine Number: ").append(ele.getLineNumber());
-                log.debug(builder.toString());
-            } else {
-                log.error(builder.toString());
-            }
-        } else {
-            logErrorOrDebug(builder.toString());
-        }
-    }
-
-    private boolean shouldLogInDebug() {
-        return loggingLevel.equalsIgnoreCase("INFO")
-                || loggingLevel.equalsIgnoreCase("WARN")
-                || loggingLevel.equalsIgnoreCase("ERROR");
-    }
-
-    private void logErrorOrDebug(String message) {
-        if (shouldLogInDebug()) {
-            log.debug(message);
-        } else {
-            log.error(message);
+            log.error(builder.toString());
         }
     }
 }
