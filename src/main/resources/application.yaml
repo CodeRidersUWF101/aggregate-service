@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: aggregate_service
+    name: ${CONFIG_APPLICATION_NAME}
   profiles:
     active: ${PROFILE}
   cloud:
