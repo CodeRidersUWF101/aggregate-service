@@ -23,15 +23,6 @@ COPY --from=builder extracted/spring-boot-loader/ ./
 COPY --from=builder extracted/snapshot-dependencies/ ./
 COPY --from=builder extracted/application/ ./
 
-###################### ONLY UNCOMMENT TO DOCKER BUILD LOCALLY ######################
-#ENV ConfigServerURI="https://configserver-44o5r5k2yq-uc.a.run.app"
-#ENV EncryptKey="<HLEdS}W$]<Su#8+%xsFJFBRXsY:mw"
-#ENV PORT=8080
-#ENV PROFILE=dev
-#ENV SecurityPassword=devpass
-#ENV SecurityUserName=developer
-####################################################################################
-
 EXPOSE 8080
 
 ENTRYPOINT ["java", "org.springframework.boot.loader.JarLauncher"]
