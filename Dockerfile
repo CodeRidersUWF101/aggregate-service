@@ -1,6 +1,14 @@
 # Build stage with Maven
 FROM maven:3.8.3-eclipse-temurin-17 as build
 WORKDIR /workspace
+
+ARG ACTOR
+ARG GITHUB_TOKEN
+
+# Generate settings.xml
+RUN echo "<settings><servers><server><id>github</id><username>${ACTOR}</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > /root/.m2/settings.xml
+
+# Copy the pom.xml
 COPY pom.xml .
 
 RUN mvn dependency:go-offline -B
