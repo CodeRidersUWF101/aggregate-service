@@ -1,9 +1,8 @@
 package com.coderiders.AggregateService.controllers;
 
-import com.coderiders.AggregateService.exceptions.AggregateErrorResponse;
 import com.coderiders.AggregateService.exceptions.AggregateException;
+import com.coderiders.commonutils.exceptions.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -18,8 +17,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AggregateControllerAdvice {
 
     @ExceptionHandler(AggregateException.class)
-    private ResponseEntity<AggregateErrorResponse> aggregateExceptionHandler(AggregateException ex) {
-        AggregateErrorResponse errorResponse = new AggregateErrorResponse();
+    private ResponseEntity<ErrorResponse> aggregateExceptionHandler(AggregateException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
 
         errorResponse.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setErrorId("ISE");
@@ -31,8 +30,8 @@ public class AggregateControllerAdvice {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    private ResponseEntity<AggregateErrorResponse> runtimeExceptionHandler(RuntimeException ex) {
-        AggregateErrorResponse errorResponse = new AggregateErrorResponse();
+    private ResponseEntity<ErrorResponse> runtimeExceptionHandler(RuntimeException ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
 
         errorResponse.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setErrorId("ISE");
@@ -44,8 +43,8 @@ public class AggregateControllerAdvice {
     }
 
     @ExceptionHandler(Exception.class)
-    private ResponseEntity<AggregateErrorResponse> exceptionHandler(Exception ex) {
-        AggregateErrorResponse errorResponse = new AggregateErrorResponse();
+    private ResponseEntity<ErrorResponse> exceptionHandler(Exception ex) {
+        ErrorResponse errorResponse = new ErrorResponse();
 
         errorResponse.setErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.setErrorId("ISE");
