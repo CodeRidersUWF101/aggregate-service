@@ -17,11 +17,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
-      - name: Setup Maven Settings
-        env:
-        run: |
-
       - name: Build with Maven
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_MVN }}
