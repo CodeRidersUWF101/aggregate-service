@@ -5,8 +5,12 @@ WORKDIR /workspace
 ARG ACTOR
 ARG GITHUB_TOKEN
 
-# Generate settings.xml
-RUN echo "<settings><servers><server><id>github</id><username>${ACTOR}</username><password>${GITHUB_TOKEN}</password></server></servers></settings>" > /root/.m2/settings.xml
+# Copy the pre-generated settings.xml with placeholders
+COPY settings.xml /root/.m2/settings.xml
+
+# Replace placeholders with actual values
+RUN sed -i "s/\${ACTOR}/${ACTOR}/g" /root/.m2/settings.xml
+RUN sed -i "s/\${GITHUB_TOKEN}/${GITHUB_TOKEN}/g" /root/.m2/settings.xml
 
 # Copy the pom.xml
 COPY pom.xml .
