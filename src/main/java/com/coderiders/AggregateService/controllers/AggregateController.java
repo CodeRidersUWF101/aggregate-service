@@ -1,7 +1,6 @@
 package com.coderiders.AggregateService.controllers;
 
 
-
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.services.BookSearchService;
 import com.coderiders.AggregateService.services.UserService;
@@ -26,6 +25,12 @@ public class AggregateController {
     @Value("${flags.booksearch.mockbooks:false}")
     private boolean mockBooks;
 
+    @Value("${flags.aggregateService.mockdeletebook:false}")
+    private boolean mockDeleteBook;
+
+    @Value("${flags.aggregateService.mocksavebook:false}")
+    private boolean mockSaveBook;
+
     @GetMapping("/")
     public String myRoute() {
         return "Successful AggregateController";
@@ -33,17 +38,32 @@ public class AggregateController {
 
     @GetMapping("/book/search")
     public Mono<List<GoogleBook>> getBookSearchMockData(@RequestParam String term) {
-        System.out.println("/book/search ENDPOINT HIT: "  + term);
+        System.out.println("/book/search ENDPOINT HIT: " + term);
 
         return mockBooks || term.isEmpty()
-            ? bookSearchService.getGoogleBooksMockData()
-            : bookSearchService.getBasicSearch(term);
+                ? bookSearchService.getGoogleBooksMockData()
+                : bookSearchService.getBasicSearch(term);
     }
 
     @PostMapping("/users/library")
     public Mono<SaveToLibraryResponse> saveBookToLibrary(@RequestBody SaveBookRequest sbr) {
-        System.out.println("/book/search ENDPOINT HIT: "  + sbr);
 
-        return userService.saveToUsersLibrary(sbr);
+        return mockSaveBook
+                ? Mono.just(new SaveToLibraryResponse("yourHardcodedIdHere - Added Book"))
+                : userService.saveToUsersLibrary(sbr);
+
+//        return userService.saveToUsersLibrary(sbr);
+    }
+
+    @DeleteMapping("/users/library")
+    public Mono<SaveToLibraryResponse> removeBookToLibrary(
+            @RequestParam("book_id") String bookId,
+            @RequestParam("clerk_id") String clerkId) {
+
+        return mockDeleteBook
+                ? Mono.just(new SaveToLibraryResponse("yourHardcodedIdHere - Removed Book"))
+                : userService.removeFromUsersLibrary(bookId, clerkId);
+
+//        return userService.removeFromUsersLibrary(bookId, clerkId);
     }
 }
