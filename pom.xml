@@ -29,7 +29,7 @@
 		<dependency>
 			<groupId>com.coderiders</groupId>
 			<artifactId>common-utils</artifactId>
-			<version>1.0.7-SNAPSHOT</version>
+			<version>1.0.8-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

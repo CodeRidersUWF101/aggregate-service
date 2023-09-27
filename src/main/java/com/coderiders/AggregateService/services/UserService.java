@@ -6,4 +6,5 @@ import reactor.core.publisher.Mono;
 
 public interface UserService {
     Mono<SaveToLibraryResponse> saveToUsersLibrary(SaveBookRequest saveBookRequest);
+    Mono<SaveToLibraryResponse> removeFromUsersLibrary(String bookId, String clerkId);
 }
