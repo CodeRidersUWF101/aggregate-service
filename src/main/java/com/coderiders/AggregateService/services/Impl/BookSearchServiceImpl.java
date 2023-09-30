@@ -5,6 +5,7 @@ import com.coderiders.AggregateService.exceptions.AggregateException;
 import com.coderiders.AggregateService.services.BookSearchService;
 import com.coderiders.commonutils.models.googleBooks.GoogleBook;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +17,9 @@ import java.util.List;
 public class BookSearchServiceImpl implements BookSearchService {
 
   private final WebClient webClient;
+
+  @Value("${endpoints.booksearch.search}")
+  private String bookSearchEndpoint;
 
   public BookSearchServiceImpl(@Qualifier("bookSearchServiceClient") WebClient.Builder webClientBuilder) {
     this.webClient = webClientBuilder.build();
@@ -35,7 +39,7 @@ public class BookSearchServiceImpl implements BookSearchService {
   @Override
   public Mono<List<GoogleBook>> getBasicSearch(String query) {
     return webClient.get()
-        .uri("/book/search?term=" + query) // Base URL is already set in WebClient.Builder
+        .uri(bookSearchEndpoint + "?term=" + query)
         .retrieve()
         .bodyToMono(new ParameterizedTypeReference<List<GoogleBook>>() {})
         .onErrorResume(e -> {
