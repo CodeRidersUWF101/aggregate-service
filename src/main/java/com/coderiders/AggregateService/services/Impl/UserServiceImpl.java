@@ -2,6 +2,7 @@ package com.coderiders.AggregateService.services.Impl;
 
 import com.coderiders.AggregateService.exceptions.AggregateException;
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
+import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import org.apache.hc.core5.net.URIBuilder;
@@ -23,6 +24,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<SaveToLibraryResponse> saveToUsersLibrary(SaveBookRequest saveBookRequest) {
+        UserContext usr = UserContext.getCurrentUserContext();
+        saveBookRequest.setClerkId(usr.getClerkId());
+
         return webClient
                 .post()
                 .uri("/users/library")
@@ -35,13 +39,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<SaveToLibraryResponse> removeFromUsersLibrary(String bookId, String clerkId) {
+    public Mono<SaveToLibraryResponse> removeFromUsersLibrary(String bookId) {
+        UserContext usr = UserContext.getCurrentUserContext();
+
         URI uri;
         try {
             uri = new URIBuilder()
                     .setPath("/users/library")
                     .setParameter("book_id", bookId)
-                    .setParameter("clerk_id", clerkId)
+                    .setParameter("clerk_id", usr.getClerkId())
                     .build();
         } catch (Exception e) {
             throw new AggregateException("Unable to build delete URI");
