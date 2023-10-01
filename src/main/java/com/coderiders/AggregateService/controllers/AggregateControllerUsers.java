@@ -35,7 +35,7 @@ public class AggregateControllerUsers {
     public Mono<SaveToLibraryResponse> saveBookToLibrary(@RequestBody SaveBookRequest sbr) {
         log.info("/users/library POST ENDPOINT HIT: " + sbr);
         return mockSaveBook
-                ? Mono.just(new SaveToLibraryResponse("yourHardcodedIdHere - Added Book"))
+                ? Mono.just(new SaveToLibraryResponse(1234L))
                 : userService.saveToUsersLibrary(sbr);
     }
 
@@ -43,7 +43,7 @@ public class AggregateControllerUsers {
     public Mono<SaveToLibraryResponse> removeBookFromLibrary(@RequestParam(AggregateConstants.BOOK_ID) String bookId) {
         log.info("/users/library DELETE ENDPOINT HIT: " + bookId);
         return mockDeleteBook
-                ? Mono.just(new SaveToLibraryResponse("yourHardcodedIdHere - Removed Book"))
+                ? Mono.just(new SaveToLibraryResponse(1234L))
                 : userService.removeFromUsersLibrary(bookId);
     }
 
@@ -59,7 +59,7 @@ public class AggregateControllerUsers {
     public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
         log.info("/users/friends");
         return mockFriendsCurrRead
-                ? Mono.just(new SaveToLibraryResponse("yourHardcodedIdHere - Friends List"))
+                ? Mono.just(new SaveToLibraryResponse(1234L))
                 : userService.getFriendsCurrentlyReading();
     }
 }

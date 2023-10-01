@@ -11,6 +11,7 @@ import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -39,10 +40,11 @@ public class UserServiceImpl implements UserService {
         return webClient
                 .post()
                 .uri(usersLibraryEndpoint)
-                .body(saveBookRequest, SaveBookRequest.class)
+                .body(Mono.just(saveBookRequest), SaveBookRequest.class)
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(SaveToLibraryResponse.class).
-                onErrorResume(e -> { throw new AggregateException(e);  });
+                .bodyToMono(SaveToLibraryResponse.class)
+                .onErrorResume(e -> { throw new AggregateException(e); });
     }
 
     @Override
