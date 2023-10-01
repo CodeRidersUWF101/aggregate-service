@@ -41,10 +41,10 @@ public class JwtDecodingFilter extends OncePerRequestFilter {
                     .parseClaimsJws(jwt)
                     .getBody();
 
-            String clerkId = claims.get("clerk_id").toString();
+            String clerkId = claims.get("userId").toString();
             List<String> roles = (List<String>) claims.get("roles");
-            String firstName = (String) claims.get("first_name");
-            String lastName = (String) claims.get("last_name");
+            String firstName = (String) claims.get("firstName");
+            String lastName = (String) claims.get("lastName");
             String username = (String) claims.get("username");
             Map<String, String> userOrganizations = (Map<String, String>) claims.get("userOrganizations");
 
