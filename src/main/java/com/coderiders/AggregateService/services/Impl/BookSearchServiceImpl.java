@@ -16,18 +16,24 @@ import java.util.List;
 @Service
 public class BookSearchServiceImpl implements BookSearchService {
 
-  private final WebClient webClient;
+    private final WebClient bookSearchWebClient;
+    private final WebClient userServiceWebClient;
 
-  @Value("${endpoints.booksearch.search}")
-  private String bookSearchEndpoint;
+    @Value("${endpoints.booksearch.search}")
+    private String bookSearchEndpoint;
+    @Value("${endpoints.user.booksave}")
+    private String userBookSaveEndpoint;
 
-  public BookSearchServiceImpl(@Qualifier("bookSearchServiceClient") WebClient.Builder webClientBuilder) {
-    this.webClient = webClientBuilder.build();
-  }
+    public BookSearchServiceImpl(@Qualifier("bookSearchServiceClient") WebClient.Builder bookSearchWebClientBuilder,
+                                 @Qualifier("userServiceClient") WebClient.Builder userServiceWebClientBuilder) {
+        this.bookSearchWebClient = bookSearchWebClientBuilder.build();
+        this.userServiceWebClient = userServiceWebClientBuilder.build();
+    }
+
 
   @Override
   public Mono<List<GoogleBook>> getGoogleBooksMockData() {
-    return webClient.get()
+    return bookSearchWebClient.get()
         .uri("/") // Base URL is already set in WebClient.Builder
         .retrieve()
         .bodyToMono(new ParameterizedTypeReference<List<GoogleBook>>() {})
@@ -36,15 +42,25 @@ public class BookSearchServiceImpl implements BookSearchService {
         });
   }
 
-  @Override
-  public Mono<List<GoogleBook>> getBasicSearch(String query) {
-    return webClient.get()
-        .uri(bookSearchEndpoint + "?term=" + query)
-        .retrieve()
-        .bodyToMono(new ParameterizedTypeReference<List<GoogleBook>>() {})
-        .onErrorResume(e -> {
-          throw new AggregateException(e);
-        });
-  }
+    @Override
+    public Mono<List<GoogleBook>> getBasicSearch(String query) {
+        return bookSearchWebClient.get()
+                .uri(bookSearchEndpoint + "?term=" + query)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<GoogleBook>>() {})
+                .flatMap(books -> {
+                    // Save books to the userBookSaveEndpoint using userServiceWebClient
+                    return userServiceWebClient.post()
+                            .uri(userBookSaveEndpoint)
+                            .bodyValue(books)
+                            .retrieve()
+                            .bodyToMono(Void.class)
+                            .onErrorResume(e -> Mono.empty())  // Handle the error if POST request fails
+                            .then(Mono.just(books)); // Return the books after the POST request
+                })
+                .onErrorResume(e -> {
+                    throw new AggregateException(e);
+                });
+    }
 
 }

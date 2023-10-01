@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class JwtDecodingFilter extends OncePerRequestFilter {
 
@@ -31,6 +33,7 @@ public class JwtDecodingFilter extends OncePerRequestFilter {
 
         try {
             if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                log.warn("No token provided");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
@@ -52,6 +55,7 @@ public class JwtDecodingFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (JwtException e) {
+            log.warn("Invalid Token");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         } finally {
             UserContext.clearCurrentUserContext();
