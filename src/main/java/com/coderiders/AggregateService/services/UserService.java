@@ -1,15 +1,14 @@
 package com.coderiders.AggregateService.services;
 
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
-import com.coderiders.commonutils.models.UserLibrary;
-import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 public interface UserService {
-    Mono<SaveToLibraryResponse> saveToUsersLibrary(SaveBookRequest saveBookRequest);
-    Mono<SaveToLibraryResponse> removeFromUsersLibrary(String bookId);
+    List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, UserLibraryWithBookDetails userLibraryWithBookDetails);
+    List<UserLibraryWithBookDetails> removeFromUsersLibrary(String userId, UserLibraryWithBookDetails userLibraryWithBookDetails);
     Mono<SaveToLibraryResponse> getFriendsCurrentlyReading();
-    Mono<List<UserLibrary>> getUsersLibrary();
+    List<UserLibraryWithBookDetails> getUsersLibrary(String userId);
 }
