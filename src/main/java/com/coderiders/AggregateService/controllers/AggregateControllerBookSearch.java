@@ -1,7 +1,7 @@
 package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.services.BookSearchService;
-import com.coderiders.commonutils.models.googleBooks.GoogleBook;
+import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -19,17 +20,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AggregateControllerBookSearch {
 
-
     private final BookSearchService bookSearchService;
 
     @Value("${flags.booksearch.mockbooks:false}")
     private boolean mockBooks;
 
     @GetMapping("/search")
-    public Mono<List<GoogleBook>> getBookSearchMockData(@RequestParam String term) {
+    public Mono<List<UserLibraryWithBookDetails>> getBookSearchMockData(@RequestParam String term) {
         log.info("/book/search GET ENDPOINT HIT: " + term);
         return mockBooks || term.isEmpty()
-                ? bookSearchService.getGoogleBooksMockData()
+                ? Mono.just(new ArrayList<>())
                 : bookSearchService.getBasicSearch(term);
     }
 }

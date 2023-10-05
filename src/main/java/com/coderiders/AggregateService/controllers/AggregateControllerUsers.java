@@ -1,10 +1,9 @@
 package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
+import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
-import com.coderiders.AggregateService.utilities.AggregateConstants;
-import com.coderiders.commonutils.models.UserLibrary;
-import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,27 +31,36 @@ public class AggregateControllerUsers {
     private boolean mockUsersLibrary;
 
     @PostMapping("/library")
-    public Mono<SaveToLibraryResponse> saveBookToLibrary(@RequestBody SaveBookRequest sbr) {
-        log.info("/users/library POST ENDPOINT HIT: " + sbr);
-        return mockSaveBook
-                ? Mono.just(new SaveToLibraryResponse(1234L))
-                : userService.saveToUsersLibrary(sbr);
+    public UserLibraryWithBookDetails saveBookToLibrary(@RequestBody UserLibraryWithBookDetails book) {
+        log.info("/users/library POST ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
+        book.setInLibrary(true);
+
+        if (mockSaveBook) {
+            return new UserLibraryWithBookDetails();
+        } else {
+            List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
+            return books.get(books.size() - 1);
+        }
+
     }
 
     @DeleteMapping("/library")
-    public Mono<SaveToLibraryResponse> removeBookFromLibrary(@RequestParam(AggregateConstants.BOOK_ID) String bookId) {
-        log.info("/users/library DELETE ENDPOINT HIT: " + bookId);
-        return mockDeleteBook
-                ? Mono.just(new SaveToLibraryResponse(1234L))
-                : userService.removeFromUsersLibrary(bookId);
+    public UserLibraryWithBookDetails removeBookFromLibrary(@RequestBody UserLibraryWithBookDetails book) {
+        log.info("/users/library DELETE ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
+
+        if (!mockDeleteBook) {
+            userService.removeFromUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
+        }
+
+        return new UserLibraryWithBookDetails();
     }
 
     @GetMapping("/library")
-    public Mono<List<UserLibrary>> getUsersLibrary() {
-        log.info("/users/library");
+    public List<UserLibraryWithBookDetails> getUsersLibrary() {
+        log.info("/users/library GET ENDPOINT HIT: " + UserContext.getCurrentUserContext().getClerkId());
         return mockUsersLibrary
-                ? Mono.just(new ArrayList<>())
-                : userService.getUsersLibrary();
+                ? new ArrayList<>()
+                : userService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
     }
 
     @GetMapping("/friends")
