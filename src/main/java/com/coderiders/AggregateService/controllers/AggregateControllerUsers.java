@@ -3,6 +3,7 @@ package com.coderiders.AggregateService.controllers;
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
+import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,12 @@ public class AggregateControllerUsers {
     @Value("${flags.aggregateService.mockgetuserslibrary:false}")
     private boolean mockUsersLibrary;
 
+    @PostMapping("/signup")
+    public User saveUserToDB(@RequestBody User user) {
+        log.info("/users/signup POST ENDPOINT HIT: " + user.getClerkId());
+        return userService.addUser(user);
+    }
+
     @PostMapping("/library")
     public UserLibraryWithBookDetails saveBookToLibrary(@RequestBody UserLibraryWithBookDetails book) {
         log.info("/users/library POST ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
@@ -41,7 +48,6 @@ public class AggregateControllerUsers {
             List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
             return books.get(books.size() - 1);
         }
-
     }
 
     @DeleteMapping("/library")

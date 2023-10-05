@@ -6,6 +6,7 @@ import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
+import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ public class UserServiceImpl implements UserService {
     private String usersLibraryEndpoint;
     @Value("${endpoints.user.friends}")
     private String usersFriendsEndpoint;
+    @Value("${endpoints.user.signup}")
+    private String usersSignUpEndpoint;
 
     public UserServiceImpl(@Qualifier("userServiceClient") WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
@@ -119,6 +122,19 @@ public class UserServiceImpl implements UserService {
         return response.getBody().stream()
                 .peek(item -> item.setInLibrary(true))
                 .toList();
+    }
+
+    @Cacheable(value = "users", key = "#user.clerkId")
+    @Override
+    public User addUser(User user) {
+        String uri = new UriBuilderWrapper(usersSignUpEndpoint).build();
+
+        ResponseEntity<User> response = userServiceRestTemplate.postForEntity(uri, user, User.class);
+
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            throw new AggregateException("Failed to save user to database.");
+        }
+        return response.getBody();
     }
 
 
