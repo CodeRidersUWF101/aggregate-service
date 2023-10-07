@@ -10,30 +10,23 @@ import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
     private final WebClient webClient;
-
-    @Autowired
-    @Qualifier("userServiceClient")
-    private RestTemplate userServiceRestTemplate;
 
     @Value("${endpoints.user.library}")
     private String usersLibraryEndpoint;
@@ -48,55 +41,61 @@ public class UserServiceImpl implements UserService {
 
     @CachePut(value = "userLibraries", key = "#userId")
     @Override
-    public List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, UserLibraryWithBookDetails book) {
-        UserContext usr = UserContext.getCurrentUserContext();
+    public List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, SaveBookRequest saveBookRequest) {
         List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(userId));
-        book.setInLibrary(true);
-        usrLibrary.add(book);
+        log.debug("========================= saveToUsersLibrary: {}", usrLibrary.size());
+        saveBookRequest.getBook().setInLibrary(true);
+        usrLibrary.add(saveBookRequest.getBook());
+        log.debug("========================= saveToUsersLibrary2: {}", usrLibrary.size());
+        String res = webClient
+                .post()
+                .uri(usersLibraryEndpoint)
+                .bodyValue(createSaveBookRequest(UserContext.getCurrentUserContext(), saveBookRequest.getBook()))
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
 
-        ResponseEntity<SaveToLibraryResponse> response =
-                userServiceRestTemplate.postForEntity(
-                        usersLibraryEndpoint,
-                        createSaveBookRequest(usr, book),
-                        SaveToLibraryResponse.class);
-
-        if (!response.getStatusCode().is2xxSuccessful()) {
+        if (res == null) {
             throw new AggregateException("Failed to save to user library");
         }
 
         return usrLibrary;
     }
 
-    @CachePut(value = "userLibraries", key = "#userId")  // Update the annotation to CachePut
+    @CachePut(value = "userLibraries", key = "#userId")
     @Override
     public List<UserLibraryWithBookDetails> removeFromUsersLibrary(String userId, UserLibraryWithBookDetails book) {
-        UserContext usr = UserContext.getCurrentUserContext();
-
         String uri = new UriBuilderWrapper(usersLibraryEndpoint)
                 .setParameter(AggregateConstants.BOOK_ID, book.getBook_id())
-                .setParameter(AggregateConstants.CLERK_ID, usr.getClerkId())
+                .setParameter(AggregateConstants.CLERK_ID, getUserContextClerkId())
                 .build();
 
-        var response = webClient
+        String response = webClient
                 .delete()
                 .uri(uri)
                 .retrieve()
-                .bodyToMono(SaveToLibraryResponse.class)
-                .onErrorResume(e -> { throw new AggregateException(e); });
+                .bodyToMono(String.class)
+                .block();
 
-        // Retrieve the current list from the cache, remove the specified book, then update the cache
+        if (response == null) {
+            throw new AggregateException("Remove From User's Library Failed");
+        }
+
         List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(userId));
-        usrLibrary.removeIf(existingBook -> existingBook.getBook_id().equals(book.getBook_id()));
+
+        log.debug("=== UserLibrarySize:  {}", usrLibrary.size());
+
+        usrLibrary.removeIf(existingBook -> existingBook.getBook_id().equals(response));
+
+        log.debug("=== UserLibrarySize (Should be 1 less):  {}", usrLibrary.size());
 
         return usrLibrary;
     }
 
     @Override
     public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
-        UserContext usr = UserContext.getCurrentUserContext();
-
         String uri = new UriBuilderWrapper(usersFriendsEndpoint)
-                .setParameter(AggregateConstants.CLERK_ID, usr.getClerkId())
+                .setParameter(AggregateConstants.CLERK_ID, getUserContextClerkId())
                 .build();
 
         return webClient
@@ -109,36 +108,45 @@ public class UserServiceImpl implements UserService {
 
     @Cacheable(value = "userLibraries", key = "#userId")
     public List<UserLibraryWithBookDetails> getUsersLibrary(String userId) {
-        String uri = new UriBuilderWrapper(usersLibraryEndpoint)
-                .setParameter(AggregateConstants.CLERK_ID, userId)
-                .build();
+        List<UserLibraryWithBookDetails> response = webClient
+                .get()
+                .uri(builder -> builder.path(usersLibraryEndpoint)
+                        .queryParam(AggregateConstants.CLERK_ID, userId)
+                        .build())
+                .retrieve()
+                .bodyToFlux(UserLibraryWithBookDetails.class)
+                .collectList()
+                .block();
 
-        ResponseEntity<List<UserLibraryWithBookDetails>> response =
-                userServiceRestTemplate.exchange(uri, HttpMethod.GET, null, new ParameterizedTypeReference<>() {});
-
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+        if (response == null) {
             throw new AggregateException("Failed to retrieve user library");
         }
 
-        return response.getBody().stream()
-                .peek(item -> item.setInLibrary(true))
-                .toList();
+        log.debug("Retrieved library size: {}", response.size());
+        return response;
     }
 
     @Cacheable(value = "users", key = "#user.clerkId")
     @Override
     public User addUser(User user) {
-        ResponseEntity<User> response = userServiceRestTemplate.postForEntity(usersSignUpEndpoint, user, User.class);
 
-        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+        User response = webClient.post()
+                .uri(usersSignUpEndpoint)
+                .bodyValue(user)
+                .retrieve()
+                .bodyToMono(User.class)
+                .block();
+
+        if (response == null) {
             throw new AggregateException("Failed to save user to database.");
         }
-        return response.getBody();
+
+        return response;
     }
 
     @Override
     public UpdateProgress updateBookProgress(UpdateProgress updateProgress) {
-        updateProgress.setClerkId(UserContext.getCurrentUserContext().getClerkId());
+        updateProgress.setClerkId(getUserContextClerkId());
 
         UpdateProgress progress = webClient.patch()
                 .uri(usersLibraryEndpoint)
@@ -147,19 +155,27 @@ public class UserServiceImpl implements UserService {
                 .bodyToMono(UpdateProgress.class)
                 .block();
 
-        if (progress != null) {
-            progress.setClerkId(null);
+        if (progress == null) {
+            throw new AggregateException("Failed to save update user progress");
         }
 
+        progress.setClerkId(null);
         return progress;
     }
-
 
     public String getUserContextClerkId() {
         return UserContext.getCurrentUserContext().getClerkId();
     }
 
-    public static SaveBookRequest createSaveBookRequest(UserContext usr, UserLibraryWithBookDetails book) {
-        return new SaveBookRequest(usr.getClerkId(), book.getIsbn_10(), book.getIsbn_13());
+    public static SaveBookRequest createSaveBookRequest(UserContext userContext, UserLibraryWithBookDetails book) {
+        User user = User.builder()
+                .clerkId(userContext.getClerkId())
+                .firstName(userContext.getFirstname())
+                .lastName(userContext.getLastname())
+                .imageUrl(userContext.getImageUrl())
+                .username(userContext.getUsername())
+                .build();
+
+        return new SaveBookRequest(user, book);
     }
 }
