@@ -77,9 +77,13 @@ public class AggregateControllerUsers {
 
     @PatchMapping("/library")
     public UpdateProgress updateBook(@RequestBody UpdateProgress updateProgress) {
-        return mockUpdateProgress
-                ? new UpdateProgress()
-                : userService.updateBookProgress(updateProgress);
+        log.info("/users/library PATCH ENDPOINT HIT: {} for {}", updateProgress.getBookId(), updateProgress.getClerkId());
+        if (mockUpdateProgress) {
+            return new UpdateProgress();
+        }
+
+        userService.updateBookProgress(updateProgress);
+        return updateProgress;
     }
 
     @DeleteMapping("/library")

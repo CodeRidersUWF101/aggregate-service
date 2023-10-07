@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +46,6 @@ public class UserServiceImpl implements UserService {
     public List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, SaveBookRequest saveBookRequest) {
         List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(userId));
         log.debug("========================= saveToUsersLibrary: {}", usrLibrary.size());
-        saveBookRequest.getBook().setInLibrary(true);
         usrLibrary.add(saveBookRequest.getBook());
         log.debug("========================= saveToUsersLibrary2: {}", usrLibrary.size());
         String res = webClient
@@ -59,7 +60,7 @@ public class UserServiceImpl implements UserService {
             throw new AggregateException("Failed to save to user library");
         }
 
-        return usrLibrary;
+        return usrLibrary.stream().peek(item -> item.setInLibrary(true)).toList();
     }
 
     @CachePut(value = "userLibraries", key = "#userId")
@@ -115,7 +116,10 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .retrieve()
                 .bodyToFlux(UserLibraryWithBookDetails.class)
-                .collectList()
+                .map(item -> {
+                    item.setInLibrary(true);
+                    return item;
+                }).collectList()
                 .block();
 
         if (response == null) {
@@ -144,8 +148,9 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    @CachePut(value = "userLibraries", key = "#updateProgress.clerkId")
     @Override
-    public UpdateProgress updateBookProgress(UpdateProgress updateProgress) {
+    public List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress) {
         updateProgress.setClerkId(getUserContextClerkId());
 
         UpdateProgress progress = webClient.patch()
@@ -159,8 +164,27 @@ public class UserServiceImpl implements UserService {
             throw new AggregateException("Failed to save update user progress");
         }
 
-        progress.setClerkId(null);
-        return progress;
+        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(updateProgress.getClerkId()));
+
+        usrLibrary = usrLibrary.stream().map(book -> {
+            if (!book.getBook_id().equalsIgnoreCase(progress.getBookId())) {
+                return book;
+            }
+
+            book.setLast_page_read(progress.getCurrentPage());
+            book.setLast_reading_update(Timestamp.from(Instant.now()));
+
+            if (progress.getCurrentPage() < book.getPage_count()) {
+                book.setReading_status(AggregateConstants.IN_PROGRESS);
+            } else if (progress.getCurrentPage() == 0) {
+                book.setReading_status(AggregateConstants.NOT_STARTED);
+            } else {
+                book.setReading_status(AggregateConstants.COMPLETED);
+            }
+            return book;
+        }).toList();
+
+        return usrLibrary;
     }
 
     public String getUserContextClerkId() {
