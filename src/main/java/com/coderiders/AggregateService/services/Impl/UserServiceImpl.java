@@ -139,7 +139,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public UpdateProgress updateBookProgress(UpdateProgress updateProgress) {
         updateProgress.setClerkId(UserContext.getCurrentUserContext().getClerkId());
-        return userServiceRestTemplate.patchForObject(usersLibraryEndpoint, updateProgress, UpdateProgress.class);
+
+        UpdateProgress progress = webClient.patch()
+                .uri(usersLibraryEndpoint)
+                .bodyValue(updateProgress)
+                .retrieve()
+                .bodyToMono(UpdateProgress.class)
+                .block();
+
+        if (progress != null) {
+            progress.setClerkId(null);
+        }
+
+        return progress;
     }
 
 
