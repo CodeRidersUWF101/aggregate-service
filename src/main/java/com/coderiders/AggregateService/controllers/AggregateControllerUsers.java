@@ -5,6 +5,7 @@ import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,11 +31,21 @@ public class AggregateControllerUsers {
     private boolean mockFriendsCurrRead;
     @Value("${flags.aggregateService.mockgetuserslibrary:false}")
     private boolean mockUsersLibrary;
+    @Value("${flags.aggregateService.mockupdateprogress:false}")
+    private boolean mockUpdateProgress;
 
     @PostMapping("/signup")
     public User saveUserToDB(@RequestBody User user) {
         log.info("/users/signup POST ENDPOINT HIT: " + user.getClerkId());
         return userService.addUser(user);
+    }
+
+    @GetMapping("/library")
+    public List<UserLibraryWithBookDetails> getUsersLibrary() {
+        log.info("/users/library GET ENDPOINT HIT: " + UserContext.getCurrentUserContext().getClerkId());
+        return mockUsersLibrary
+                ? new ArrayList<>()
+                : userService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
     }
 
     @PostMapping("/library")
@@ -50,6 +61,13 @@ public class AggregateControllerUsers {
         }
     }
 
+    @PatchMapping("/library")
+    public UpdateProgress updateBook(@RequestBody UpdateProgress updateProgress) {
+        return mockUpdateProgress
+                ? new UpdateProgress()
+                : userService.updateBookProgress(updateProgress);
+    }
+
     @DeleteMapping("/library")
     public UserLibraryWithBookDetails removeBookFromLibrary(@RequestBody UserLibraryWithBookDetails book) {
         log.info("/users/library DELETE ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
@@ -61,13 +79,6 @@ public class AggregateControllerUsers {
         return new UserLibraryWithBookDetails();
     }
 
-    @GetMapping("/library")
-    public List<UserLibraryWithBookDetails> getUsersLibrary() {
-        log.info("/users/library GET ENDPOINT HIT: " + UserContext.getCurrentUserContext().getClerkId());
-        return mockUsersLibrary
-                ? new ArrayList<>()
-                : userService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
-    }
 
     @GetMapping("/friends")
     public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
