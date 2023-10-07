@@ -9,6 +9,7 @@ import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -127,14 +128,17 @@ public class UserServiceImpl implements UserService {
     @Cacheable(value = "users", key = "#user.clerkId")
     @Override
     public User addUser(User user) {
-        String uri = new UriBuilderWrapper(usersSignUpEndpoint).build();
-
-        ResponseEntity<User> response = userServiceRestTemplate.postForEntity(uri, user, User.class);
+        ResponseEntity<User> response = userServiceRestTemplate.postForEntity(usersSignUpEndpoint, user, User.class);
 
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
             throw new AggregateException("Failed to save user to database.");
         }
         return response.getBody();
+    }
+
+    @Override
+    public UpdateProgress updateBookProgress(UpdateProgress updateProgress) {
+        return userServiceRestTemplate.patchForObject(usersLibraryEndpoint, updateProgress, UpdateProgress.class);
     }
 
 
