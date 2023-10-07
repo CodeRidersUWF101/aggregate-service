@@ -4,12 +4,13 @@ import com.coderiders.AggregateService.exceptions.AggregateException;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
 @Getter
 @ToString
-public class UserContext {
+public class UserContext implements Serializable {
     private static final ThreadLocal<UserContext> userContextThreadLocal = new ThreadLocal<>();
 
     private final String clerkId;
@@ -17,20 +18,22 @@ public class UserContext {
     private final String firstname;
     private final String lastname;
     private final String username;
+    private final String imageUrl;
     private final Map<String, String> userOrganizations;
 
-    private UserContext(String userId, List<String> roles, String firstname, String lastname, String username, Map<String, String> userOrganizations) {
+    private UserContext(String userId, List<String> roles, String firstname, String lastname, String username, Map<String, String> userOrganizations, String imageUrl) {
         this.clerkId = userId;
         this.roles = roles;
         this.firstname = firstname;
         this.lastname = lastname;
         this.username = username;
         this.userOrganizations = userOrganizations;
+        this.imageUrl = imageUrl;
 
     }
 
-    public static void create(String userId, List<String> roles, String firstname, String lastname, String username, Map<String, String> userOrganizations) {
-        UserContext userContext = new UserContext(userId, roles, firstname, lastname, username, userOrganizations);
+    public static void create(String userId, List<String> roles, String firstname, String lastname, String username, Map<String, String> userOrganizations, String imageUrl) {
+        UserContext userContext = new UserContext(userId, roles, firstname, lastname, username, userOrganizations, imageUrl);
         setCurrentUserContext(userContext);
     }
 

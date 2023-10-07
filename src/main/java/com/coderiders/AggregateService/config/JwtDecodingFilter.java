@@ -50,8 +50,9 @@ public class JwtDecodingFilter extends OncePerRequestFilter {
             String lastName = (String) claims.get("lastName");
             String username = (String) claims.get("username");
             Map<String, String> userOrganizations = (Map<String, String>) claims.get("userOrganizations");
+            String imageUrl = (String) claims.get("imageUrl");
 
-            UserContext.create(clerkId, roles, firstName, lastName, username, userOrganizations);
+            UserContext.create(clerkId, roles, firstName, lastName, username, userOrganizations, imageUrl);
 
             filterChain.doFilter(request, response);
         } catch (JwtException e) {

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Arrays;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
@@ -24,7 +25,7 @@ public class AggregateControllerAdvice {
         errorResponse.setErrorId("ISE");
         errorResponse.setErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
 
-
+        System.out.println(Arrays.toString(ex.getStackTrace()));
         logException(ex, "AggregateException");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -16,8 +16,8 @@ public class WebClientConfig {
   @Value("${serviceUrls.user}")
   private String userServiceBase;
 
-  @Value("${serviceUrls.bookSearch}")
-  private String bookSearchServiceBase;
+  @Value("${urls.googlebooks}")
+  private String googleBooksBase;
 
   @Value("${serviceUrls.recommendation}")
   private String recommendationServiceBase;
@@ -36,7 +36,7 @@ public class WebClientConfig {
   @Bean
   @Qualifier("bookSearchServiceClient")
   public WebClient.Builder bookSearchServiceWebClientBuilder() {
-    return WebClient.builder().baseUrl(bookSearchServiceBase)
+    return WebClient.builder().baseUrl(googleBooksBase)
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
   }
 

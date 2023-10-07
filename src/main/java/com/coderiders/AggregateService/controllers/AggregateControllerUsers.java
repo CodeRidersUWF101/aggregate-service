@@ -5,6 +5,7 @@ import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,13 +51,26 @@ public class AggregateControllerUsers {
 
     @PostMapping("/library")
     public UserLibraryWithBookDetails saveBookToLibrary(@RequestBody UserLibraryWithBookDetails book) {
-        log.info("/users/library POST ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
-        book.setInLibrary(true);
+        log.info("/users/library POST ENDPOINT HIT: {} for {}", book.getBook_id(), UserContext.getCurrentUserContext().getClerkId());
 
         if (mockSaveBook) {
             return new UserLibraryWithBookDetails();
         } else {
-            List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
+            UserContext userContext = UserContext.getCurrentUserContext();
+            User user = User.builder()
+                    .clerkId(userContext.getClerkId())
+                    .firstName(userContext.getFirstname())
+                    .lastName(userContext.getLastname())
+                    .imageUrl(userContext.getImageUrl())
+                    .username(userContext.getUsername())
+                    .build();
+
+            SaveBookRequest req = SaveBookRequest.builder()
+                    .user(user)
+                    .book(book)
+                    .build();
+            List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(req.getUser().getClerkId(), req);
+            log.info("SavedToLibrarys Return Size: {}", books.size());
             return books.get(books.size() - 1);
         }
     }
@@ -80,11 +94,12 @@ public class AggregateControllerUsers {
     }
 
 
+    // Has Placeholder Return Object for now.
     @GetMapping("/friends")
     public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
         log.info("/users/friends");
         return mockFriendsCurrRead
-                ? Mono.just(new SaveToLibraryResponse(1234L))
+                ? Mono.just(new SaveToLibraryResponse("1234"))
                 : userService.getFriendsCurrentlyReading();
     }
 }
