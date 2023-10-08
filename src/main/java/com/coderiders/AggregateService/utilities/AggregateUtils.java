@@ -36,12 +36,13 @@ public class AggregateUtils {
                 .build();
     }
 
-    public static List<UserLibraryWithBookDetails> googleBookToLibraryWithDetails(List<GoogleBook> googleBooks, List<UserLibraryWithBookDetails> inLibrary) {
-        Set<String> inLibraryBookIds = inLibrary.stream()
+    public static List<UserLibraryWithBookDetails> googleBookToLibraryWithDetails(List<GoogleBook> googleBooks, List<UserLibraryWithBookDetails> inCachedLibrary) {
+        Set<String> inLibraryBookIds = inCachedLibrary.stream()
                 .map(UserLibraryWithBookDetails::getBook_id)
                 .collect(Collectors.toSet());
 
         return googleBooks.stream()
+                .filter(book -> book.volumeInfo.pageCount > 0) // Only Books > 0 allowed
                 .map(AggregateUtils::googleBookToLibraryWithDetails)
                 .peek(book -> book.setInLibrary(inLibraryBookIds.contains(book.getBook_id())))
                 .collect(Collectors.toList());

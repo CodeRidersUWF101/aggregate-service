@@ -4,7 +4,7 @@ import com.coderiders.AggregateService.exceptions.AggregateException;
 import com.coderiders.AggregateService.models.SearchResults;
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.BookSearchService;
-import com.coderiders.AggregateService.services.UserService;
+import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.AggregateUtils;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
@@ -22,12 +22,13 @@ import java.util.List;
 public class BookSearchServiceImpl implements BookSearchService {
 
     private final WebClient bookSearchWebClient;
-    private final UserService userService;
+    private final GetLibraryService getLibraryService;
 
     public BookSearchServiceImpl(@Qualifier("bookSearchServiceClient") WebClient.Builder bookSearchWebClientBuilder,
-                                 UserService userService) {
+                                 GetLibraryService getLibraryService) {
+
         this.bookSearchWebClient = bookSearchWebClientBuilder.build();
-        this.userService = userService;
+        this.getLibraryService = getLibraryService;
     }
 
     @Override
@@ -53,7 +54,7 @@ public class BookSearchServiceImpl implements BookSearchService {
     }
 
     private Mono<List<UserLibraryWithBookDetails>> makeQuery(String uri) {
-        List<UserLibraryWithBookDetails> inLibrary = userService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
+        List<UserLibraryWithBookDetails> inLibrary = getLibraryService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
         List<UserLibraryWithBookDetails> toUse = inLibrary == null || inLibrary.isEmpty() ? new ArrayList<>() : inLibrary;
 
         return bookSearchWebClient

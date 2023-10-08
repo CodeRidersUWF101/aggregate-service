@@ -3,6 +3,7 @@ package com.coderiders.AggregateService.services.Impl;
 import com.coderiders.AggregateService.exceptions.AggregateException;
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
+import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
@@ -11,10 +12,12 @@ import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -30,12 +33,16 @@ public class UserServiceImpl implements UserService {
 
     private final WebClient webClient;
 
+    @Autowired
+    private GetLibraryService getLibraryService;
+
     @Value("${endpoints.user.library}")
     private String usersLibraryEndpoint;
     @Value("${endpoints.user.friends}")
     private String usersFriendsEndpoint;
     @Value("${endpoints.user.signup}")
     private String usersSignUpEndpoint;
+
 
     public UserServiceImpl(@Qualifier("userServiceClient") WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
@@ -44,15 +51,24 @@ public class UserServiceImpl implements UserService {
     @CachePut(value = "userLibraries", key = "#userId")
     @Override
     public List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, SaveBookRequest saveBookRequest) {
-        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(userId));
-        log.debug("========================= saveToUsersLibrary: {}", usrLibrary.size());
+        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getLibraryService.getUsersLibrary(userId));
+        List<String> bookIds = usrLibrary.stream().map(UserLibraryWithBookDetails::getBook_id).toList();
+
+        if (bookIds.contains(saveBookRequest.getBook().getBook_id())) {
+            return usrLibrary.stream().peek(item -> item.setInLibrary(true)).toList();
+        }
+
         usrLibrary.add(saveBookRequest.getBook());
-        log.debug("========================= saveToUsersLibrary2: {}", usrLibrary.size());
+
         String res = webClient
                 .post()
                 .uri(usersLibraryEndpoint)
-                .bodyValue(createSaveBookRequest(UserContext.getCurrentUserContext(), saveBookRequest.getBook()))
+                .bodyValue(createSaveBookRequest(saveBookRequest.getBook()))
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + usersLibraryEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + usersLibraryEndpoint, errorMessage))))
                 .bodyToMono(String.class)
                 .block();
 
@@ -75,6 +91,10 @@ public class UserServiceImpl implements UserService {
                 .delete()
                 .uri(uri)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from DELETE " + usersLibraryEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from DELETE " + usersLibraryEndpoint, errorMessage))))
                 .bodyToMono(String.class)
                 .block();
 
@@ -82,13 +102,12 @@ public class UserServiceImpl implements UserService {
             throw new AggregateException("Remove From User's Library Failed");
         }
 
-        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(userId));
+        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getLibraryService.getUsersLibrary(userId));
 
         log.debug("=== UserLibrarySize:  {}", usrLibrary.size());
-
         usrLibrary.removeIf(existingBook -> existingBook.getBook_id().equals(response));
-
         log.debug("=== UserLibrarySize (Should be 1 less):  {}", usrLibrary.size());
+        // TODO: Currently is not 1 less. I think the getUsersLibrary(userId) is always making the DB call. Why?
 
         return usrLibrary;
     }
@@ -103,32 +122,15 @@ public class UserServiceImpl implements UserService {
                 .get()
                 .uri(uri)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from GET " + usersFriendsEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from GET " + usersFriendsEndpoint, errorMessage))))
                 .bodyToMono(SaveToLibraryResponse.class).
                 onErrorResume(e -> { throw new AggregateException(e); });
     }
 
-    @Cacheable(value = "userLibraries", key = "#userId")
-    public List<UserLibraryWithBookDetails> getUsersLibrary(String userId) {
-        List<UserLibraryWithBookDetails> response = webClient
-                .get()
-                .uri(builder -> builder.path(usersLibraryEndpoint)
-                        .queryParam(AggregateConstants.CLERK_ID, userId)
-                        .build())
-                .retrieve()
-                .bodyToFlux(UserLibraryWithBookDetails.class)
-                .map(item -> {
-                    item.setInLibrary(true);
-                    return item;
-                }).collectList()
-                .block();
 
-        if (response == null) {
-            throw new AggregateException("Failed to retrieve user library");
-        }
-
-        log.debug("Retrieved library size: {}", response.size());
-        return response;
-    }
 
     @Cacheable(value = "users", key = "#user.clerkId")
     @Override
@@ -138,6 +140,10 @@ public class UserServiceImpl implements UserService {
                 .uri(usersSignUpEndpoint)
                 .bodyValue(user)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + usersSignUpEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + usersSignUpEndpoint, errorMessage))))
                 .bodyToMono(User.class)
                 .block();
 
@@ -157,6 +163,10 @@ public class UserServiceImpl implements UserService {
                 .uri(usersLibraryEndpoint)
                 .bodyValue(updateProgress)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from PATCH " + usersLibraryEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from PATCH " + usersLibraryEndpoint, errorMessage))))
                 .bodyToMono(UpdateProgress.class)
                 .block();
 
@@ -164,7 +174,7 @@ public class UserServiceImpl implements UserService {
             throw new AggregateException("Failed to save update user progress");
         }
 
-        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getUsersLibrary(updateProgress.getClerkId()));
+        List<UserLibraryWithBookDetails> usrLibrary = new ArrayList<>(getLibraryService.getUsersLibrary(updateProgress.getClerkId()));
 
         usrLibrary = usrLibrary.stream().map(book -> {
             if (!book.getBook_id().equalsIgnoreCase(progress.getBookId())) {
@@ -191,7 +201,9 @@ public class UserServiceImpl implements UserService {
         return UserContext.getCurrentUserContext().getClerkId();
     }
 
-    public static SaveBookRequest createSaveBookRequest(UserContext userContext, UserLibraryWithBookDetails book) {
+    public SaveBookRequest createSaveBookRequest(UserLibraryWithBookDetails book) {
+        UserContext userContext = UserContext.getCurrentUserContext();
+
         User user = User.builder()
                 .clerkId(userContext.getClerkId())
                 .firstName(userContext.getFirstname())

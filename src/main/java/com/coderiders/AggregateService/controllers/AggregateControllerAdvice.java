@@ -65,9 +65,15 @@ public class AggregateControllerAdvice {
             builder.append("\nMethod Name: ").append(ele.getMethodName());
             builder.append("\nFile Name: ").append(ele.getFileName());
             builder.append("\nLine Number: ").append(ele.getLineNumber());
-
-            log.error(builder.toString());
         }
+        builder.append("\nMessage: ").append(ex.getMessage());
+
+        if (ex instanceof AggregateException) {
+            if (((AggregateException) ex).getAdditionalMessage() != null) {
+                builder.append("\nAdditional Message: ").append(((AggregateException) ex).getAdditionalMessage());
+            }
+        }
+        log.error(builder.toString());
     }
 }
 
