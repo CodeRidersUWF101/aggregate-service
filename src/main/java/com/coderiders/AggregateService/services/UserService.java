@@ -13,7 +13,6 @@ public interface UserService {
     List<UserLibraryWithBookDetails> saveToUsersLibrary(String userId, SaveBookRequest saveBookRequest);
     List<UserLibraryWithBookDetails> removeFromUsersLibrary(String userId, UserLibraryWithBookDetails userLibraryWithBookDetails);
     Mono<SaveToLibraryResponse> getFriendsCurrentlyReading();
-    List<UserLibraryWithBookDetails> getUsersLibrary(String userId);
     User addUser(User user);
     List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress);
 }

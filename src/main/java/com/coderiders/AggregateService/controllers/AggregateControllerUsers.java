@@ -2,6 +2,7 @@ package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
+import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
@@ -23,6 +24,7 @@ import java.util.List;
 public class AggregateControllerUsers {
 
     private final UserService userService;
+    private final GetLibraryService getLibraryService;
 
     @Value("${flags.aggregateService.mockdeletebook:false}")
     private boolean mockDeleteBook;
@@ -46,7 +48,7 @@ public class AggregateControllerUsers {
         log.info("/users/library GET ENDPOINT HIT: " + UserContext.getCurrentUserContext().getClerkId());
         return mockUsersLibrary
                 ? new ArrayList<>()
-                : userService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
+                : getLibraryService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
     }
 
     @PostMapping("/library")
@@ -90,13 +92,9 @@ public class AggregateControllerUsers {
     public UserLibraryWithBookDetails removeBookFromLibrary(@RequestBody UserLibraryWithBookDetails book) {
         log.info("/users/library DELETE ENDPOINT HIT: " + book.getBook_id() + " for: " + UserContext.getCurrentUserContext().getClerkId());
 
-        if (!mockDeleteBook) {
-            userService.removeFromUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
-        }
-
+        userService.removeFromUsersLibrary(UserContext.getCurrentUserContext().getClerkId(), book);
         return new UserLibraryWithBookDetails();
     }
-
 
     // Has Placeholder Return Object for now.
     @GetMapping("/friends")
