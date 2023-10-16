@@ -17,6 +17,8 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
 @Slf4j
 @Service
 public class GamificationServiceImpl implements GamificationService {
@@ -34,21 +36,21 @@ public class GamificationServiceImpl implements GamificationService {
 
 
 
-        webClient
+        String response = webClient
                 .post()
                 .uri(saveUserChallengesEndpoint)
-                .bodyValue(saveUserChallenges);
-//                .retrieve()
-//                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
-//                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + saveUserChallengesEndpoint, errorMessage))))
-//                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
-//                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + saveUserChallengesEndpoint, errorMessage))))
-//                .bodyToMono(String.class)
-//                .block();
+                .bodyValue(saveUserChallenges)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + saveUserChallengesEndpoint, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + saveUserChallengesEndpoint, errorMessage))))
+                .bodyToMono(String.class)
+                .block();
 
-//        if (res == null) {
-//            throw new AggregateException("Failed to save to Gamification Library");
-//        }
+        if (response == null) {
+            throw new AggregateException("Failed to save to Gamification Library");
+        }
     }
 
 
