@@ -29,7 +29,7 @@
 		<dependency>
 			<groupId>com.coderiders</groupId>
 			<artifactId>common-utils</artifactId>
-			<version>1.1.913-SNAPSHOT</version>
+			<version>1.1.914-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
