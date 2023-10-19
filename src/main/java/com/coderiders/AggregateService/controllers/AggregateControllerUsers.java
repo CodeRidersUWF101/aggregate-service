@@ -26,8 +26,6 @@ public class AggregateControllerUsers {
     private final UserService userService;
     private final GetLibraryService getLibraryService;
 
-    @Value("${flags.aggregateService.mockdeletebook:false}")
-    private boolean mockDeleteBook;
     @Value("${flags.aggregateService.mocksavebook:false}")
     private boolean mockSaveBook;
     @Value("${flags.aggregateService.mockfriendscurrread:false}")
@@ -72,7 +70,7 @@ public class AggregateControllerUsers {
                     .book(book)
                     .build();
             List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(req.getUser().getClerkId(), req);
-            log.info("SavedToLibrarys Return Size: {}", books.size());
+            log.info("SavedToLibrary's Return Size: {}", books.size());
             return books.get(books.size() - 1);
         }
     }
