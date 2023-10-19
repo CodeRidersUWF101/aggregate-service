@@ -7,10 +7,13 @@ import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
+import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
+import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,11 +30,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+
 @Slf4j
 @Service
 public class UserServiceImpl implements UserService {
 
     private final WebClient webClient;
+    private final WebClient gamificationClient;
 
     @Autowired
     private GetLibraryService getLibraryService;
@@ -44,8 +50,11 @@ public class UserServiceImpl implements UserService {
     private String usersSignUpEndpoint;
 
 
-    public UserServiceImpl(@Qualifier("userServiceClient") WebClient.Builder webClientBuilder) {
+    public UserServiceImpl(@Qualifier("userServiceClient") WebClient.Builder webClientBuilder,
+                           @Qualifier("gamificationServiceClient") WebClient.Builder gamificationServiceClientBuilder) {
         this.webClient = webClientBuilder.build();
+        this.gamificationClient = gamificationServiceClientBuilder.build();
+
     }
 
     @CachePut(value = "userLibraries", key = "#userId")
@@ -57,6 +66,14 @@ public class UserServiceImpl implements UserService {
         if (bookIds.contains(saveBookRequest.getBook().getBook_id())) {
             return usrLibrary.stream().peek(item -> item.setInLibrary(true)).toList();
         }
+
+        gamificationClient.post().uri("/gamification/activity")
+                        .bodyValue(new AddItem(saveBookRequest.getUser().getClerkId(), "ADDED_BOOK", -1, null))
+                        .retrieve()
+                        .bodyToMono(AddItem.class)
+                        .block();
+
+        printColored("AFTER ADD TO LIBRARY", ConsoleFormatter.Color.PURPLE);
 
         usrLibrary.add(saveBookRequest.getBook());
 
@@ -87,6 +104,15 @@ public class UserServiceImpl implements UserService {
                 .setParameter(AggregateConstants.CLERK_ID, getUserContextClerkId())
                 .build();
 
+
+        gamificationClient.post().uri("/gamification/activity")
+                .bodyValue(new AddItem(userId, "DELETED_BOOK", -1, null))
+                .retrieve()
+                .bodyToMono(AddItem.class)
+                .block();
+
+        printColored("AFTER REMOVE TO LIBRARY", ConsoleFormatter.Color.PURPLE);
+
         String response = webClient
                 .delete()
                 .uri(uri)
@@ -107,7 +133,6 @@ public class UserServiceImpl implements UserService {
         log.debug("=== UserLibrarySize:  {}", usrLibrary.size());
         usrLibrary.removeIf(existingBook -> existingBook.getBook_id().equals(response));
         log.debug("=== UserLibrarySize (Should be 1 less):  {}", usrLibrary.size());
-        // TODO: Currently is not 1 less. I think the getUsersLibrary(userId) is always making the DB call. Why?
 
         return usrLibrary;
     }
@@ -158,6 +183,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress) {
         updateProgress.setClerkId(getUserContextClerkId());
+
+        // FIXME: This needs to be stored and returned.
+        gamificationClient.post()
+                .uri("/gamification/pages")
+                .bodyValue(updateProgress)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/pages", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/pages", errorMessage))))
+                .bodyToMono(Status.class)
+                .subscribe(
+                        result -> {
+                            // Do something with the result if needed, leave empty if not
+                        },
+                        error -> {
+                            // Log the error
+                            System.err.println("An error occurred: " + error.getMessage());
+                        });
 
         UpdateProgress progress = webClient.patch()
                 .uri(usersLibraryEndpoint)
