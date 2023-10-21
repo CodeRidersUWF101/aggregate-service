@@ -25,9 +25,6 @@ public class WebClientConfig {
   @Value("${urls.googlebooks}")
   private String googleBooksBase;
 
-  @Value("${serviceUrls.recommendation}")
-  private String recommendationServiceBase;
-
   @Value("${serviceUrls.gamification}")
   private String gamificationServiceBase;
 
@@ -47,20 +44,11 @@ public class WebClientConfig {
   }
 
   @Bean
-  @Qualifier("recommendationServiceClient")
-  public WebClient.Builder recommendationServiceWebClientBuilder() {
-    return WebClient.builder().baseUrl(recommendationServiceBase)
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-  }
-
-  @Bean
   @Qualifier("gamificationServiceClient")
   public WebClient.Builder gamificationServiceWebClientBuilder() {
     return WebClient.builder()
             .baseUrl(gamificationServiceBase)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-//            .filter(logRequest())
-//            .filter(logResponse());
   }
 
   private ExchangeFilterFunction logRequest() {

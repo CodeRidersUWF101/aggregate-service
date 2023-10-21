@@ -2,19 +2,20 @@ package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
+import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
+import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 @Slf4j
@@ -25,15 +26,7 @@ public class AggregateControllerUsers {
 
     private final UserService userService;
     private final GetLibraryService getLibraryService;
-
-    @Value("${flags.aggregateService.mocksavebook:false}")
-    private boolean mockSaveBook;
-    @Value("${flags.aggregateService.mockfriendscurrread:false}")
-    private boolean mockFriendsCurrRead;
-    @Value("${flags.aggregateService.mockgetuserslibrary:false}")
-    private boolean mockUsersLibrary;
-    @Value("${flags.aggregateService.mockupdateprogress:false}")
-    private boolean mockUpdateProgress;
+    private final GamificationService gamificationService;
 
     @PostMapping("/signup")
     public User saveUserToDB(@RequestBody User user) {
@@ -44,46 +37,37 @@ public class AggregateControllerUsers {
     @GetMapping("/library")
     public List<UserLibraryWithBookDetails> getUsersLibrary() {
         log.info("/users/library GET ENDPOINT HIT: " + UserContext.getCurrentUserContext().getClerkId());
-        return mockUsersLibrary
-                ? new ArrayList<>()
-                : getLibraryService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
+        return getLibraryService.getUsersLibrary(UserContext.getCurrentUserContext().getClerkId());
     }
 
     @PostMapping("/library")
     public UserLibraryWithBookDetails saveBookToLibrary(@RequestBody UserLibraryWithBookDetails book) {
         log.info("/users/library POST ENDPOINT HIT: {} for {}", book.getBook_id(), UserContext.getCurrentUserContext().getClerkId());
 
-        if (mockSaveBook) {
-            return new UserLibraryWithBookDetails();
-        } else {
-            UserContext userContext = UserContext.getCurrentUserContext();
-            User user = User.builder()
-                    .clerkId(userContext.getClerkId())
-                    .firstName(userContext.getFirstname())
-                    .lastName(userContext.getLastname())
-                    .imageUrl(userContext.getImageUrl())
-                    .username(userContext.getUsername())
-                    .build();
+        UserContext userContext = UserContext.getCurrentUserContext();
+        User user = User.builder()
+                .clerkId(userContext.getClerkId())
+                .firstName(userContext.getFirstname())
+                .lastName(userContext.getLastname())
+                .imageUrl(userContext.getImageUrl())
+                .username(userContext.getUsername())
+                .build();
 
-            SaveBookRequest req = SaveBookRequest.builder()
-                    .user(user)
-                    .book(book)
-                    .build();
-            List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(req.getUser().getClerkId(), req);
-            log.info("SavedToLibrary's Return Size: {}", books.size());
-            return books.get(books.size() - 1);
-        }
+        SaveBookRequest req = SaveBookRequest.builder()
+                .user(user)
+                .book(book)
+                .build();
+        List<UserLibraryWithBookDetails> books = userService.saveToUsersLibrary(req.getUser().getClerkId(), req);
+        log.info("SavedToLibrary's Return Size: {}", books.size());
+        return books.get(books.size() - 1);
     }
 
     @PatchMapping("/library")
-    public UpdateProgress updateBook(@RequestBody UpdateProgress updateProgress) {
+    public Status updateBook(@RequestBody UpdateProgress updateProgress) {
         log.info("/users/library PATCH ENDPOINT HIT: {} for {}", updateProgress.getBookId(), updateProgress.getClerkId());
-        if (mockUpdateProgress) {
-            return new UpdateProgress();
-        }
 
         userService.updateBookProgress(updateProgress);
-        return updateProgress;
+        return gamificationService.saveUserPages(updateProgress);
     }
 
     @DeleteMapping("/library")
@@ -98,8 +82,6 @@ public class AggregateControllerUsers {
     @GetMapping("/friends")
     public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
         log.info("/users/friends");
-        return mockFriendsCurrRead
-                ? Mono.just(new SaveToLibraryResponse("1234"))
-                : userService.getFriendsCurrentlyReading();
+        return userService.getFriendsCurrentlyReading();
     }
 }
