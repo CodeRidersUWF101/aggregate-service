@@ -3,9 +3,11 @@ package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
+import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.SaveUserChallenges;
+import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
 
 @Slf4j
 @RestController
@@ -49,5 +53,14 @@ public class AggregateControllerGamification {
     public ResponseEntity<Map<String, List<UserBadge>>> getUserBadges() {
         log.info("/gamification/badges GET ENDPOINT HIT");
         return new ResponseEntity<>(gamificationService.getUserBadges(UserContext.getCurrentUserContext().getClerkId()), HttpStatus.OK);
+    }
+
+    @GetMapping("/achievements")
+    public ResponseEntity<List<LatestAchievement>> getLatestUserAchievements() {
+        printColored("/achievements GET ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+
+
+
+        return new ResponseEntity<>(gamificationService.getLatestUserAchievements(), HttpStatus.OK);
     }
 }

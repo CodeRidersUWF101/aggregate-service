@@ -59,6 +59,8 @@ public class AggregateControllerAdvice {
         StringBuilder builder = new StringBuilder();
         builder.append(exceptionType).append(" occurred.");
 
+        log.error("Exception Occurred: {}", exceptionType, ex);
+
         if (ex.getStackTrace().length > 0) {
             StackTraceElement ele = ex.getStackTrace()[0];
             builder.append("\nClass Name: ").append(ele.getClassName());

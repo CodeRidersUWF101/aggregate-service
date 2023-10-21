@@ -1,11 +1,14 @@
 package com.coderiders.AggregateService.services.Impl;
 
 import com.coderiders.AggregateService.exceptions.AggregateException;
+import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
+import com.coderiders.commonutils.models.LatestAchievement;
+import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.SaveUserChallenges;
-import com.coderiders.commonutils.utils.ConsoleFormatter;
+import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,8 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
-
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
 
 
 @Slf4j
@@ -59,7 +60,7 @@ public class GamificationServiceImpl implements GamificationService {
     @Override
     public List<UserChallengesExtraDTO> getUserChallenges(String clerkId) {
         String url = String.format("%s/%s", saveUserChallengesEndpoint, clerkId);
-        printColored(url, ConsoleFormatter.Color.BLUE);
+
         return webClient
                 .get()
                 .uri(url)
@@ -75,7 +76,7 @@ public class GamificationServiceImpl implements GamificationService {
     @Override
     public Map<String, List<UserBadge>> getUserBadges(String clerkId) {
         String url = String.format("%s/%s", userBadgesEndpoint, clerkId);
-        printColored(url, ConsoleFormatter.Color.BLUE);
+
         return webClient
                 .get()
                 .uri(url)
@@ -85,6 +86,35 @@ public class GamificationServiceImpl implements GamificationService {
                 .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
                         .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from GET " + userBadgesEndpoint, errorMessage))))
                 .bodyToMono(new ParameterizedTypeReference<Map<String, List<UserBadge>>>() {})
+                .block();
+    }
+
+    @Override
+    public Status saveUserPages(UpdateProgress progress) {
+
+        return  webClient.post()
+                .uri("/gamification/pages")
+                .bodyValue(progress)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/pages", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/pages", errorMessage))))
+                .bodyToMono(Status.class)
+                .block();
+    }
+
+    @Override
+    public List<LatestAchievement> getLatestUserAchievements() {
+
+        return  webClient.get()
+                .uri("/gamification/achievements/" + UserContext.getCurrentUserContext().getClerkId())
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/pages", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/pages", errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<LatestAchievement>>() {})
                 .block();
     }
 }

@@ -8,7 +8,6 @@ import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
 import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
@@ -183,25 +182,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress) {
         updateProgress.setClerkId(getUserContextClerkId());
-
-        // FIXME: This needs to be stored and returned.
-        gamificationClient.post()
-                .uri("/gamification/pages")
-                .bodyValue(updateProgress)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
-                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/pages", errorMessage))))
-                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
-                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/pages", errorMessage))))
-                .bodyToMono(Status.class)
-                .subscribe(
-                        result -> {
-                            // Do something with the result if needed, leave empty if not
-                        },
-                        error -> {
-                            // Log the error
-                            System.err.println("An error occurred: " + error.getMessage());
-                        });
 
         UpdateProgress progress = webClient.patch()
                 .uri(usersLibraryEndpoint)
