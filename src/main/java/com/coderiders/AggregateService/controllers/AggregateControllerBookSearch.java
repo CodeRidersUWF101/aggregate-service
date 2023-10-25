@@ -21,7 +21,7 @@ public class AggregateControllerBookSearch {
     private final BookSearchService bookSearchService;
 
     @GetMapping("/search")
-    public Mono<List<UserLibraryWithBookDetails>> getBookSearchMockData(@RequestParam String term) {
+    public Mono<List<UserLibraryWithBookDetails>> getBookSearchData(@RequestParam String term) {
         log.info("/book/search GET ENDPOINT HIT: " + term);
         return bookSearchService.getBasicSearch(term);
     }
