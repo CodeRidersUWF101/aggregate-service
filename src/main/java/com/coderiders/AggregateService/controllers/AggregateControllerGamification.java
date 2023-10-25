@@ -7,7 +7,6 @@ import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.SaveUserChallenges;
-import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
 
 @Slf4j
 @RestController
@@ -35,12 +32,10 @@ public class AggregateControllerGamification {
 
     @PostMapping("/challenge")
     public ResponseEntity<String> saveUserChallenge(@RequestBody SaveUserChallenges saveUserChallenges) {
-        log.info("Saving User Challenge with aggregation Service");
-//        log.info("/users/signup POST ENDPOINT HIT: " + user.getClerkId());
+        log.info("/gamification/challenge POST ENDPOINT HIT: " + saveUserChallenges.getClerkId());
         gamificationService.saveUserChallenge(saveUserChallenges);
-        String successMessage = "Successfully saved a challenge through the aggregate service for user: " + saveUserChallenges.getClerkId();
 
-        return new ResponseEntity<>(successMessage, HttpStatus.OK);
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 
     @GetMapping("/challenge")
@@ -57,10 +52,15 @@ public class AggregateControllerGamification {
 
     @GetMapping("/achievements")
     public ResponseEntity<List<LatestAchievement>> getLatestUserAchievements() {
-        printColored("/achievements GET ENDPOINT HIT", ConsoleFormatter.Color.PURPLE);
+        log.info("/achievements GET ENDPOINT HIT");
 
+        return new ResponseEntity<>(gamificationService.getLatestUserAchievements(UserContext.getCurrentUserContext().getClerkId()), HttpStatus.OK);
+    }
 
+    @GetMapping("/points")
+    public ResponseEntity<Integer> getUserPoints() {
+        log.info("/points GET ENDPOINT HIT");
 
-        return new ResponseEntity<>(gamificationService.getLatestUserAchievements(), HttpStatus.OK);
+        return new ResponseEntity<>(gamificationService.getUserPoints(UserContext.getCurrentUserContext().getClerkId()), HttpStatus.OK);
     }
 }

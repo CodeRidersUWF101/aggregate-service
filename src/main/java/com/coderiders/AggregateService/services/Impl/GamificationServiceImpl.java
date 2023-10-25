@@ -1,7 +1,6 @@
 package com.coderiders.AggregateService.services.Impl;
 
 import com.coderiders.AggregateService.exceptions.AggregateException;
-import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.commonutils.models.LatestAchievement;
 import com.coderiders.commonutils.models.Status;
@@ -105,16 +104,29 @@ public class GamificationServiceImpl implements GamificationService {
     }
 
     @Override
-    public List<LatestAchievement> getLatestUserAchievements() {
+    public List<LatestAchievement> getLatestUserAchievements(String clerkId) {
 
         return  webClient.get()
-                .uri("/gamification/achievements/" + UserContext.getCurrentUserContext().getClerkId())
+                .uri("/gamification/achievements/" + clerkId)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
-                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/pages", errorMessage))))
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/achievements", errorMessage))))
                 .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
-                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/pages", errorMessage))))
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/achievements", errorMessage))))
                 .bodyToMono(new ParameterizedTypeReference<List<LatestAchievement>>() {})
+                .block();
+    }
+
+    @Override
+    public Integer getUserPoints(String clerkId) {
+        return  webClient.get()
+                .uri("/gamification/points/" + clerkId)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + "/gamification/points", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + "/gamification/points", errorMessage))))
+                .bodyToMono(Integer.class)
                 .block();
     }
 }
