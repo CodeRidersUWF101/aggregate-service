@@ -15,5 +15,6 @@ public interface GamificationService {
     List<UserChallengesExtraDTO> getUserChallenges(String clerkId);
     Map<String, List<UserBadge>> getUserBadges(String clerkId);
     Status saveUserPages(UpdateProgress progress);
-    List<LatestAchievement> getLatestUserAchievements();
+    List<LatestAchievement> getLatestUserAchievements(String clerkId);
+    Integer getUserPoints(String clerkId);
 }
