@@ -1,10 +1,14 @@
 package com.coderiders.AggregateService.utilities;
 
+import com.coderiders.AggregateService.models.LeaderboardUser;
 import com.coderiders.commonutils.GoogleBookUtils;
+import com.coderiders.commonutils.models.GamificationLeaderboard;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.GoogleBook;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,5 +50,37 @@ public class AggregateUtils {
                 .map(AggregateUtils::googleBookToLibraryWithDetails)
                 .peek(book -> book.setInLibrary(inLibraryBookIds.contains(book.getBook_id())))
                 .collect(Collectors.toList());
+    }
+
+    public static List<LeaderboardUser> gamificationLeaderboardToLeaderboardUser(List<GamificationLeaderboard> gl, List<UtilsUser> ul) {
+        Map<String, UtilsUser> clerkIdToUserMap = ul.stream()
+                .collect(Collectors.toMap(UtilsUser::getClerkId, u -> u));
+
+        List<LeaderboardUser> retList = gl.stream()
+                .map(gamificationLeaderboard -> {
+                    UtilsUser user = clerkIdToUserMap.get(gamificationLeaderboard.getClerkId());
+
+                    String firstLast = user == null ? null : user.getFirstName() + " " + user.getLastName();
+                    String username = user == null ? gamificationLeaderboard.getClerkId() : user.getUsername();
+                    String displayName = firstLast == null ? username : firstLast;
+
+                    String imageUrl = user == null ? null : user.getImageUrl();
+                    String avatarUrl = imageUrl == null ? "https://i.pravatar.cc/300" : imageUrl;
+
+                    return LeaderboardUser.builder()
+                            .clerkId(gamificationLeaderboard.getClerkId())
+                            .displayName(displayName)
+                            .avatarUrl(avatarUrl)
+                            .points(gamificationLeaderboard.getTotalPoints())
+                            .build();
+                })
+                .sorted((o1, o2) -> o2.getPoints() - o1.getPoints()) // sort by points
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < retList.size(); i++) {
+            retList.get(i).setRank(i + 1);
+        }
+
+        return retList;
     }
 }

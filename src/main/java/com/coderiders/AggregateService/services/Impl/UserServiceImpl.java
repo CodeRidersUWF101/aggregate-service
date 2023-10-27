@@ -8,8 +8,8 @@ import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
 import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.commonutils.utils.ConsoleFormatter;
@@ -158,9 +158,9 @@ public class UserServiceImpl implements UserService {
 
     @Cacheable(value = "users", key = "#user.clerkId")
     @Override
-    public User addUser(User user) {
+    public UtilsUser addUser(UtilsUser user) {
 
-        User response = webClient.post()
+        UtilsUser response = webClient.post()
                 .uri(usersSignUpEndpoint)
                 .bodyValue(user)
                 .retrieve()
@@ -168,7 +168,7 @@ public class UserServiceImpl implements UserService {
                         .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + usersSignUpEndpoint, errorMessage))))
                 .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
                         .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + usersSignUpEndpoint, errorMessage))))
-                .bodyToMono(User.class)
+                .bodyToMono(UtilsUser.class)
                 .block();
 
         if (response == null) {
@@ -228,7 +228,7 @@ public class UserServiceImpl implements UserService {
     public SaveBookRequest createSaveBookRequest(UserLibraryWithBookDetails book) {
         UserContext userContext = UserContext.getCurrentUserContext();
 
-        User user = User.builder()
+        UtilsUser user = UtilsUser.builder()
                 .clerkId(userContext.getClerkId())
                 .firstName(userContext.getFirstname())
                 .lastName(userContext.getLastname())

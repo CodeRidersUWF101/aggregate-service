@@ -1,8 +1,7 @@
 package com.coderiders.AggregateService.services;
 
-import com.coderiders.commonutils.models.LatestAchievement;
-import com.coderiders.commonutils.models.Status;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.AggregateService.models.LeaderboardUser;
+import com.coderiders.commonutils.models.*;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.SaveUserChallenges;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
@@ -17,4 +16,6 @@ public interface GamificationService {
     Status saveUserPages(UpdateProgress progress);
     List<LatestAchievement> getLatestUserAchievements(String clerkId);
     Integer getUserPoints(String clerkId);
+    SingleBookStats getSingleBookStats(String clerkId, String bookId);
+    List<LeaderboardUser> getLeaderboard(String leaderboardId);
 }

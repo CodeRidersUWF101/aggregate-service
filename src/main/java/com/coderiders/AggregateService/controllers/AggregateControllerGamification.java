@@ -1,9 +1,11 @@
 package com.coderiders.AggregateService.controllers;
 
 
+import com.coderiders.AggregateService.models.LeaderboardUser;
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.commonutils.models.LatestAchievement;
+import com.coderiders.commonutils.models.SingleBookStats;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.records.UserBadge;
 import com.coderiders.commonutils.models.requests.SaveUserChallenges;
@@ -62,5 +64,19 @@ public class AggregateControllerGamification {
         log.info("/points GET ENDPOINT HIT");
 
         return new ResponseEntity<>(gamificationService.getUserPoints(UserContext.getCurrentUserContext().getClerkId()), HttpStatus.OK);
+    }
+
+    @GetMapping("/stats/singlebook")
+    public ResponseEntity<SingleBookStats> getSingleBookStats(@RequestParam(name = "book_id") String bookId) {
+        log.info("/stats/singlebook GET ENDPOINT HIT");
+
+        return new ResponseEntity<>(gamificationService.getSingleBookStats(UserContext.getCurrentUserContext().getClerkId(), bookId), HttpStatus.OK);
+    }
+
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<LeaderboardUser>> getLeaderboard() {
+        log.info("/leaderboard GET ENDPOINT HIT");
+
+        return new ResponseEntity<>(gamificationService.getLeaderboard("LEADERBOARD"), HttpStatus.OK);
     }
 }
