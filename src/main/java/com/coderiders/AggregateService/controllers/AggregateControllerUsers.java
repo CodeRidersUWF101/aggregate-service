@@ -6,8 +6,8 @@ import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.commonutils.models.Status;
-import com.coderiders.commonutils.models.User;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class AggregateControllerUsers {
     private final GamificationService gamificationService;
 
     @PostMapping("/signup")
-    public User saveUserToDB(@RequestBody User user) {
+    public UtilsUser saveUserToDB(@RequestBody UtilsUser user) {
         log.info("/users/signup POST ENDPOINT HIT: " + user.getClerkId());
         return userService.addUser(user);
     }
@@ -45,7 +45,7 @@ public class AggregateControllerUsers {
         log.info("/users/library POST ENDPOINT HIT: {} for {}", book.getBook_id(), UserContext.getCurrentUserContext().getClerkId());
 
         UserContext userContext = UserContext.getCurrentUserContext();
-        User user = User.builder()
+        UtilsUser user = UtilsUser.builder()
                 .clerkId(userContext.getClerkId())
                 .firstName(userContext.getFirstname())
                 .lastName(userContext.getLastname())
