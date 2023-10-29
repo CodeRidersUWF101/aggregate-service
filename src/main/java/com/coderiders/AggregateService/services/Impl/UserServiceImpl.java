@@ -8,6 +8,7 @@ import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
 import com.coderiders.commonutils.models.AddItem;
+import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
@@ -219,6 +220,19 @@ public class UserServiceImpl implements UserService {
         }).toList();
 
         return usrLibrary;
+    }
+
+    @Override
+    public Mono<List<SmallUser>> getPendingFriends() {
+        String url = new UriBuilderWrapper("/users/friends/pending")
+                .setParameter(AggregateConstants.CLERK_ID, getUserContextClerkId())
+                .build();
+
+        return webClient.get().uri(url)
+                .retrieve()
+                .bodyToFlux(SmallUser.class)
+                .collectList()
+                .onErrorResume(e -> { throw new AggregateException(e); });
     }
 
     public String getUserContextClerkId() {

@@ -1,24 +1,17 @@
 package com.coderiders.AggregateService.models;
 
+import com.coderiders.commonutils.models.SmallUser;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
+import lombok.*;
 
 import java.io.Serializable;
 
 @Data
-@Builder
-@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LeaderboardUser implements Serializable {
-    private String displayName;
+public class LeaderboardUser extends SmallUser implements Serializable {
     private int points;
     private int rank;
-    private String avatarUrl;
-    private String clerkId;
 }
