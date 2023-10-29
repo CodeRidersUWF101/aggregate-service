@@ -7,6 +7,7 @@ import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
+import com.coderiders.commonutils.models.requests.GetFriendsBooks;
 import com.coderiders.commonutils.models.AddItem;
 import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
@@ -270,6 +271,23 @@ public class UserServiceImpl implements UserService {
                 .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
                         .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + url, errorMessage))))
                 .bodyToMono(new ParameterizedTypeReference<List<UtilsUser>>() {})
+                .block();
+    }
+
+    public List<GetFriendsBooks> getFriendsBooks(String clerkId) {
+        String url = new UriBuilderWrapper("users/retrieveFriends/")
+                .setParameter("clerkId", clerkId)
+                .build();
+
+        return webClient
+                .get()
+                .uri(url)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + url, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + url, errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<GetFriendsBooks>>() {})
                 .block();
     }
 }
