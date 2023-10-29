@@ -9,6 +9,7 @@ import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.AddFriend;
 import com.coderiders.commonutils.models.requests.GetFriendsBooks;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
@@ -95,6 +96,12 @@ public class AggregateControllerUsers {
     public List<GetFriendsBooks> GetFriendsBooks(@RequestParam("clerkId") String clerkId) {
         log.info("/users/retrieveFriends GET ENDPOINT HIT: " + clerkId);
         return userService.getFriendsBooks(clerkId);
+    }
+
+    @PostMapping("/addFriends")
+    public AddFriend addFriend(@RequestBody AddFriend friendRequest) {
+        log.info("/users/signup POST ENDPOINT HIT: " + friendRequest.getRequestingClerkId() + "   " + friendRequest.getFriendToAddClerkId());
+        return userService.addFriend(friendRequest);
     }
 
 }

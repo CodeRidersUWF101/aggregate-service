@@ -7,6 +7,7 @@ import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
+import com.coderiders.commonutils.models.requests.AddFriend;
 import com.coderiders.commonutils.models.requests.GetFriendsBooks;
 import com.coderiders.commonutils.models.AddItem;
 import com.coderiders.commonutils.models.SmallUser;
@@ -290,4 +291,14 @@ public class UserServiceImpl implements UserService {
                 .bodyToMono(new ParameterizedTypeReference<List<GetFriendsBooks>>() {})
                 .block();
     }
+
+    @Override
+    public AddFriend addFriend(AddFriend friendRequest) {
+        return webClient.post().uri("/users/addFriends")
+                .bodyValue(friendRequest)
+                .retrieve()
+                .bodyToMono(AddFriend.class)
+                .block();
+    }
+
 }

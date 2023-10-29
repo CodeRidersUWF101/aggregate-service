@@ -5,6 +5,7 @@ import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.AddFriend;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.commonutils.models.requests.GetFriendsBooks;
 import reactor.core.publisher.Mono;
@@ -20,4 +21,5 @@ public interface UserService {
     Mono<List<SmallUser>> getPendingFriends();
     List<UtilsUser> getFriendsNotBlocked(String clerkId);
     List<GetFriendsBooks> getFriendsBooks(String clerkId);
+    AddFriend addFriend(AddFriend friendRequest);
 }
