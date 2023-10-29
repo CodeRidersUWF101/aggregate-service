@@ -1,10 +1,10 @@
 package com.coderiders.AggregateService.controllers;
 
-import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
+import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
@@ -78,11 +78,10 @@ public class AggregateControllerUsers {
         return new UserLibraryWithBookDetails();
     }
 
-    // Has Placeholder Return Object for now.
-    @GetMapping("/friends")
-    public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
+    @GetMapping("/friends/pending")
+    public Mono<List<SmallUser>> getFriends() {
         log.info("/users/friends");
-        return userService.getFriendsCurrentlyReading();
+        return userService.getPendingFriends();
     }
 
     @GetMapping("/getUsers/")

@@ -1,6 +1,7 @@
 package com.coderiders.AggregateService.services;
 
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
+import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
@@ -15,5 +16,6 @@ public interface UserService {
     Mono<SaveToLibraryResponse> getFriendsCurrentlyReading();
     UtilsUser addUser(UtilsUser user);
     List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress);
+    Mono<List<SmallUser>> getPendingFriends();
     List<UtilsUser> getFriendsNotBlocked(String clerkId);
 }
