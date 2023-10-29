@@ -15,4 +15,5 @@ public interface UserService {
     Mono<SaveToLibraryResponse> getFriendsCurrentlyReading();
     UtilsUser addUser(UtilsUser user);
     List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress);
+    List<UtilsUser> getFriendsNotBlocked(String clerkId);
 }
