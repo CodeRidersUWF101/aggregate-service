@@ -275,7 +275,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public List<GetFriendsBooks> getFriendsBooks(String clerkId) {
-        String url = new UriBuilderWrapper("users/retrieveFriends/")
+        String url = new UriBuilderWrapper("users/retrieveFriends")
                 .setParameter("clerkId", clerkId)
                 .build();
 
