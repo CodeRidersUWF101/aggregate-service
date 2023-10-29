@@ -9,6 +9,7 @@ import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
 import com.coderiders.commonutils.models.AddItem;
 import com.coderiders.commonutils.models.SmallUser;
+import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -251,5 +253,23 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         return new SaveBookRequest(user, book);
+    }
+
+    public List<UtilsUser> getFriendsNotBlocked(String clerkId) {
+        String url = new UriBuilderWrapper("users/getUsers/")
+                .setParameter("clerk_id", clerkId)
+                        .build();
+
+        System.out.println("Here is the users endpoint: " + url);
+        return webClient
+                .get()
+                .uri(url)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + url, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + url, errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<UtilsUser>>() {})
+                .block();
     }
 }

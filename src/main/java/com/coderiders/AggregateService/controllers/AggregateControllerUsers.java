@@ -83,4 +83,11 @@ public class AggregateControllerUsers {
         log.info("/users/friends");
         return userService.getPendingFriends();
     }
+
+    @GetMapping("/getUsers/")
+    public List<UtilsUser> getFriendsNotBlocked(@RequestParam("clerk_id") String clerkId) {
+        log.info("users/getUsers GET ENDPOINT HIT for clerkId: " + clerkId);
+        return userService.getFriendsNotBlocked(clerkId);
+    }
+
 }

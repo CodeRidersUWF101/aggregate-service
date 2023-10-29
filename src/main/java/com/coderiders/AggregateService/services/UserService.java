@@ -17,4 +17,5 @@ public interface UserService {
     UtilsUser addUser(UtilsUser user);
     List<UserLibraryWithBookDetails> updateBookProgress(UpdateProgress updateProgress);
     Mono<List<SmallUser>> getPendingFriends();
+    List<UtilsUser> getFriendsNotBlocked(String clerkId);
 }
