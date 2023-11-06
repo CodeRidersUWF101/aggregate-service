@@ -159,7 +159,6 @@ public class GamificationServiceImpl implements GamificationService {
 
 
     @Override
-    @Cacheable(value = "leaderboard", key = "#leaderboardId")
     public List<LeaderboardUser> getLeaderboard(String leaderboardId) {
         List<GamificationLeaderboard> gl = webClient
                 .get()

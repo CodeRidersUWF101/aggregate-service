@@ -1,14 +1,17 @@
 package com.coderiders.AggregateService.controllers;
 
-import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
 import com.coderiders.AggregateService.services.GamificationService;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
+import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.Status;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.AddFriend;
+import com.coderiders.commonutils.models.requests.GetFriendsBooks;
+import com.coderiders.commonutils.models.requests.UpdateFriendRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,17 +81,34 @@ public class AggregateControllerUsers {
         return new UserLibraryWithBookDetails();
     }
 
-    // Has Placeholder Return Object for now.
-    @GetMapping("/friends")
-    public Mono<SaveToLibraryResponse> getFriendsCurrentlyReading() {
+    @GetMapping("/friends/pending")
+    public Mono<List<SmallUser>> getFriends() {
         log.info("/users/friends");
-        return userService.getFriendsCurrentlyReading();
+        return userService.getPendingFriends();
     }
 
     @GetMapping("/getUsers/")
     public List<UtilsUser> getFriendsNotBlocked(@RequestParam("clerk_id") String clerkId) {
         log.info("users/getUsers GET ENDPOINT HIT for clerkId: " + clerkId);
         return userService.getFriendsNotBlocked(clerkId);
+    }
+
+    @GetMapping("/retrieveFriends")
+    public List<GetFriendsBooks> GetFriendsBooks(@RequestParam("clerkId") String clerkId) {
+        log.info("/users/retrieveFriends GET ENDPOINT HIT: " + clerkId);
+        return userService.getFriendsBooks(clerkId);
+    }
+
+    @PostMapping("/addFriends")
+    public AddFriend addFriend(@RequestBody AddFriend friendRequest) {
+        log.info("/users/signup POST ENDPOINT HIT: " + friendRequest.getRequestingClerkId() + "   " + friendRequest.getFriendToAddClerkId());
+        return userService.addFriend(friendRequest);
+    }
+
+    @PutMapping("/updateFriends")
+    public UpdateFriendRequest updateFriendRequest(@RequestBody UpdateFriendRequest updateRequest) {
+        log.info("/users/updateFriends PUT ENDPOINT HIT: " + updateRequest.getClerkId());
+        return userService.updateFriendRequest(updateRequest);
     }
 
 }

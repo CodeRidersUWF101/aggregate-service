@@ -67,12 +67,13 @@ public class AggregateUtils {
                     String imageUrl = user == null ? null : user.getImageUrl();
                     String avatarUrl = imageUrl == null ? "https://i.pravatar.cc/300" : imageUrl;
 
-                    return LeaderboardUser.builder()
-                            .clerkId(gamificationLeaderboard.getClerkId())
-                            .displayName(displayName)
-                            .avatarUrl(avatarUrl)
-                            .points(gamificationLeaderboard.getTotalPoints())
-                            .build();
+                    LeaderboardUser usr = new LeaderboardUser();
+                    usr.setPoints(gamificationLeaderboard.getTotalPoints());
+                    usr.setAvatarUrl(avatarUrl);
+                    usr.setClerkId(gamificationLeaderboard.getClerkId());
+                    usr.setDisplayName(displayName);
+
+                    return usr;
                 })
                 .sorted((o1, o2) -> o2.getPoints() - o1.getPoints()) // sort by points
                 .collect(Collectors.toList());
