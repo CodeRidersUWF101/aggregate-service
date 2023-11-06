@@ -7,12 +7,15 @@ import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
+import com.coderiders.commonutils.models.requests.AddFriend;
+import com.coderiders.commonutils.models.requests.GetFriendsBooks;
 import com.coderiders.commonutils.models.AddItem;
 import com.coderiders.commonutils.models.SmallUser;
 import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.UpdateFriendRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.extern.slf4j.Slf4j;
@@ -272,4 +275,40 @@ public class UserServiceImpl implements UserService {
                 .bodyToMono(new ParameterizedTypeReference<List<UtilsUser>>() {})
                 .block();
     }
+
+    public List<GetFriendsBooks> getFriendsBooks(String clerkId) {
+        String url = new UriBuilderWrapper("users/retrieveFriends")
+                .setParameter("clerkId", clerkId)
+                .build();
+
+        return webClient
+                .get()
+                .uri(url)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from POST " + url, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from POST " + url, errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<GetFriendsBooks>>() {})
+                .block();
+    }
+
+    @Override
+    public AddFriend addFriend(AddFriend friendRequest) {
+        return webClient.post().uri("/users/addFriends")
+                .bodyValue(friendRequest)
+                .retrieve()
+                .bodyToMono(AddFriend.class)
+                .block();
+    }
+
+    @Override
+    public UpdateFriendRequest updateFriendRequest(UpdateFriendRequest updateRequest) {
+        return webClient.put().uri("/users/updateFriends")
+                .bodyValue(updateRequest)
+                .retrieve()
+                .bodyToMono(UpdateFriendRequest.class)
+                .block();
+    }
+
 }
