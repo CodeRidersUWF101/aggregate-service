@@ -15,6 +15,7 @@ import com.coderiders.commonutils.models.UserChallengesExtraDTO;
 import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.commonutils.models.UtilsUser;
 import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.commonutils.models.requests.UpdateFriendRequest;
 import com.coderiders.commonutils.models.requests.UpdateProgress;
 import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.extern.slf4j.Slf4j;
@@ -298,6 +299,15 @@ public class UserServiceImpl implements UserService {
                 .bodyValue(friendRequest)
                 .retrieve()
                 .bodyToMono(AddFriend.class)
+                .block();
+    }
+
+    @Override
+    public UpdateFriendRequest updateFriendRequest(UpdateFriendRequest updateRequest) {
+        return webClient.put().uri("/users/updateFriends")
+                .bodyValue(updateRequest)
+                .retrieve()
+                .bodyToMono(UpdateFriendRequest.class)
                 .block();
     }
 
