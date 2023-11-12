@@ -3,21 +3,20 @@ package com.coderiders.AggregateService.services.Impl;
 import com.coderiders.AggregateService.exceptions.AggregateException;
 import com.coderiders.AggregateService.models.SaveToLibraryResponse;
 import com.coderiders.AggregateService.models.UserContext;
+import com.coderiders.AggregateService.models.commonutils.models.AddItem;
+import com.coderiders.AggregateService.models.commonutils.models.SmallUser;
+import com.coderiders.AggregateService.models.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.AggregateService.models.commonutils.models.UtilsUser;
+import com.coderiders.AggregateService.models.commonutils.models.googleBooks.SaveBookRequest;
+import com.coderiders.AggregateService.models.commonutils.models.requests.AddFriend;
+import com.coderiders.AggregateService.models.commonutils.models.requests.GetFriendsBooks;
+import com.coderiders.AggregateService.models.commonutils.models.requests.UpdateFriendRequest;
+import com.coderiders.AggregateService.models.commonutils.models.requests.UpdateProgress;
+import com.coderiders.AggregateService.models.commonutils.utils.ConsoleFormatter;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.services.UserService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
 import com.coderiders.AggregateService.utilities.UriBuilderWrapper;
-import com.coderiders.commonutils.models.requests.AddFriend;
-import com.coderiders.commonutils.models.requests.GetFriendsBooks;
-import com.coderiders.commonutils.models.AddItem;
-import com.coderiders.commonutils.models.SmallUser;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
-import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
-import com.coderiders.commonutils.models.UtilsUser;
-import com.coderiders.commonutils.models.googleBooks.SaveBookRequest;
-import com.coderiders.commonutils.models.requests.UpdateFriendRequest;
-import com.coderiders.commonutils.models.requests.UpdateProgress;
-import com.coderiders.commonutils.utils.ConsoleFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,7 +34,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.coderiders.commonutils.utils.ConsoleFormatter.printColored;
+import static com.coderiders.AggregateService.models.commonutils.utils.ConsoleFormatter.printColored;
+
 
 @Slf4j
 @Service

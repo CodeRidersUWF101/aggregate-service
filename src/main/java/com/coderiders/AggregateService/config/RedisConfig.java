@@ -1,6 +1,6 @@
 package com.coderiders.AggregateService.config;
 
-import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.AggregateService.models.commonutils.models.UserLibraryWithBookDetails;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;

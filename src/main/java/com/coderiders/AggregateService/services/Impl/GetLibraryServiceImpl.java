@@ -1,9 +1,9 @@
 package com.coderiders.AggregateService.services.Impl;
 
 import com.coderiders.AggregateService.exceptions.AggregateException;
+import com.coderiders.AggregateService.models.commonutils.models.UserLibraryWithBookDetails;
 import com.coderiders.AggregateService.services.GetLibraryService;
 import com.coderiders.AggregateService.utilities.AggregateConstants;
-import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;

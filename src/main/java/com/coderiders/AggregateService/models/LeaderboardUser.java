@@ -1,6 +1,6 @@
 package com.coderiders.AggregateService.models;
 
-import com.coderiders.commonutils.models.SmallUser;
+import com.coderiders.AggregateService.models.commonutils.models.SmallUser;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 

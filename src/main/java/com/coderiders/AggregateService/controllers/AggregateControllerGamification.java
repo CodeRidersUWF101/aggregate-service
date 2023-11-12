@@ -3,12 +3,12 @@ package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.models.LeaderboardUser;
 import com.coderiders.AggregateService.models.UserContext;
+import com.coderiders.AggregateService.models.commonutils.models.LatestAchievement;
+import com.coderiders.AggregateService.models.commonutils.models.SingleBookStats;
+import com.coderiders.AggregateService.models.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.AggregateService.models.commonutils.models.records.UserBadge;
+import com.coderiders.AggregateService.models.commonutils.models.requests.SaveUserChallenges;
 import com.coderiders.AggregateService.services.GamificationService;
-import com.coderiders.commonutils.models.LatestAchievement;
-import com.coderiders.commonutils.models.SingleBookStats;
-import com.coderiders.commonutils.models.UserChallengesExtraDTO;
-import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.commonutils.models.requests.SaveUserChallenges;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

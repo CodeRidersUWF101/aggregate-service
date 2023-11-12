@@ -1,7 +1,7 @@
 package com.coderiders.AggregateService.services;
 
 
-import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.AggregateService.models.commonutils.models.UserLibraryWithBookDetails;
 import reactor.core.publisher.Mono;
 
 import java.util.List;

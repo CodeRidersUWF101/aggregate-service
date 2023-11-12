@@ -1,7 +1,7 @@
 package com.coderiders.AggregateService.controllers;
 
 import com.coderiders.AggregateService.exceptions.AggregateException;
-import com.coderiders.commonutils.exceptions.ErrorResponse;
+import com.coderiders.AggregateService.models.commonutils.exceptions.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
