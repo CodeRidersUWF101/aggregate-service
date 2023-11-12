@@ -1,23 +1,21 @@
-package com.coderiders.AggregateService.models;
+package com.coderiders.AggregateService.models.commonutils.models;
 
-import com.coderiders.AggregateService.models.commonutils.models.googleBooks.GoogleBook;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
 @Data
 @Builder
+@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SearchResults {
-
-    private String kind;
-    private int totalItems;
-    private List<GoogleBook> items;
-
+public class SingleBookStats {
+    private List<BookStats> bookStats;
+    private Status status;
 }

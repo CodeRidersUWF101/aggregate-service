@@ -1,10 +1,13 @@
 package com.coderiders.AggregateService.services;
 
 import com.coderiders.AggregateService.models.LeaderboardUser;
-import com.coderiders.commonutils.models.*;
-import com.coderiders.commonutils.models.records.UserBadge;
-import com.coderiders.commonutils.models.requests.SaveUserChallenges;
-import com.coderiders.commonutils.models.requests.UpdateProgress;
+import com.coderiders.AggregateService.models.commonutils.models.LatestAchievement;
+import com.coderiders.AggregateService.models.commonutils.models.SingleBookStats;
+import com.coderiders.AggregateService.models.commonutils.models.Status;
+import com.coderiders.AggregateService.models.commonutils.models.UserChallengesExtraDTO;
+import com.coderiders.AggregateService.models.commonutils.models.records.UserBadge;
+import com.coderiders.AggregateService.models.commonutils.models.requests.SaveUserChallenges;
+import com.coderiders.AggregateService.models.commonutils.models.requests.UpdateProgress;
 
 import java.util.List;
 import java.util.Map;

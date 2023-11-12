@@ -1,11 +1,11 @@
 package com.coderiders.AggregateService.utilities;
 
 import com.coderiders.AggregateService.models.LeaderboardUser;
-import com.coderiders.commonutils.GoogleBookUtils;
-import com.coderiders.commonutils.models.GamificationLeaderboard;
-import com.coderiders.commonutils.models.UserLibraryWithBookDetails;
-import com.coderiders.commonutils.models.UtilsUser;
-import com.coderiders.commonutils.models.googleBooks.GoogleBook;
+import com.coderiders.AggregateService.models.commonutils.GoogleBookUtils;
+import com.coderiders.AggregateService.models.commonutils.models.GamificationLeaderboard;
+import com.coderiders.AggregateService.models.commonutils.models.UserLibraryWithBookDetails;
+import com.coderiders.AggregateService.models.commonutils.models.UtilsUser;
+import com.coderiders.AggregateService.models.commonutils.models.googleBooks.GoogleBook;
 
 import java.util.List;
 import java.util.Map;
