@@ -18,8 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Slf4j
@@ -240,6 +239,20 @@ public class GamificationServiceImpl implements GamificationService {
                 .bodyToMono(new ParameterizedTypeReference<List<GamificationLeaderboard>>() {})
                 .block();
 
-        return AggregateUtils.gamificationLeaderboardToLeaderboardUser(gl, ul);
+        List<LeaderboardUser> gamificationListSorted = new ArrayList<LeaderboardUser>();
+        gamificationListSorted = AggregateUtils.gamificationLeaderboardToLeaderboardUser(gl, ul);
+
+        Collections.sort(gamificationListSorted, new Comparator<LeaderboardUser>(){
+            public int compare(LeaderboardUser o1, LeaderboardUser o2){
+                if(o1.getPoints() == o2.getPoints())
+                    return 0;
+                return o1.getPoints() > o2.getPoints() ? -1 : 1;
+            }
+        });
+
+        return gamificationListSorted;
     }
+
+
+
 }

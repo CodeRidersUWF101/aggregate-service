@@ -14,4 +14,10 @@ import java.io.Serializable;
 public class LeaderboardUser extends SmallUser implements Serializable {
     private int points;
     private int rank;
+
+
+    public int compareTo(LeaderboardUser o)
+    {
+        return(points - o.points);
+    }
 }
