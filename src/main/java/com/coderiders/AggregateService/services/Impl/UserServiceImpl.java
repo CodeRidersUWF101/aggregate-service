@@ -263,7 +263,6 @@ public class UserServiceImpl implements UserService {
                 .setParameter("clerk_id", clerkId)
                         .build();
 
-        System.out.println("Here is the users endpoint: " + url);
         return webClient
                 .get()
                 .uri(url)

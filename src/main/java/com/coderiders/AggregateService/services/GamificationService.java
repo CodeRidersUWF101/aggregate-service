@@ -21,4 +21,5 @@ public interface GamificationService {
     Integer getUserPoints(String clerkId);
     SingleBookStats getSingleBookStats(String clerkId, String bookId);
     List<LeaderboardUser> getLeaderboard(String leaderboardId);
+    List<LeaderboardUser> getLeaderboardFriends(String clerkId);
 }
