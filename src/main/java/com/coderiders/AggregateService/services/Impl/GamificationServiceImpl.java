@@ -250,6 +250,12 @@ public class GamificationServiceImpl implements GamificationService {
             }
         });
 
+        if (gamificationListSorted.size() > 7) {
+            for (int i = 7; i < gamificationListSorted.size(); i++) {
+                gamificationListSorted.remove(i);
+            }
+        }
+
         return gamificationListSorted;
     }
 
