@@ -18,8 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Slf4j
@@ -194,4 +193,66 @@ public class GamificationServiceImpl implements GamificationService {
 
         return AggregateUtils.gamificationLeaderboardToLeaderboardUser(gl, ul);
     }
+
+
+    public List<LeaderboardUser> getLeaderboardFriends(String clerkId) {
+
+        // friends url to send
+        String friendsUrl = new UriBuilderWrapper("users/getFriends/")
+                .setParameter("clerk_id", clerkId)
+                .build();
+
+        // find the friends for the given clerk id
+        List<String> friends = usrWebClient
+                .get()
+                .uri(friendsUrl)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from GET " + "/users/getFriends/ using clerkId: " + clerkId, errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from GET " + "/users/getFriends/ using clerkId: " + clerkId, errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<String>>() {})
+                .block();
+
+        // friends that are retrieved are searched for to be created as util users
+        List<UtilsUser> ul = usrWebClient
+                .post()
+                .uri("/users/getByClerkIds")
+                .bodyValue(friends)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from GET " + "/users/getByClerkIds", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from GET " + "/users/getByClerkIds", errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<UtilsUser>>() {})
+                .block();
+
+        List<GamificationLeaderboard> gl = webClient
+                .post()
+                .uri("/gamification/userPoints")
+                .bodyValue(ul)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("4xx Response from GET " + "/gamification/leaderboard", errorMessage))))
+                .onStatus(HttpStatusCode::is5xxServerError, resp -> resp.bodyToMono(String.class)
+                        .flatMap(errorMessage -> Mono.error(new AggregateException("5xx Response from GET " + "/gamification/leaderboard", errorMessage))))
+                .bodyToMono(new ParameterizedTypeReference<List<GamificationLeaderboard>>() {})
+                .block();
+
+        List<LeaderboardUser> gamificationListSorted = new ArrayList<LeaderboardUser>();
+        gamificationListSorted = AggregateUtils.gamificationLeaderboardToLeaderboardUser(gl, ul);
+
+        Collections.sort(gamificationListSorted, new Comparator<LeaderboardUser>(){
+            public int compare(LeaderboardUser o1, LeaderboardUser o2){
+                if(o1.getPoints() == o2.getPoints())
+                    return 0;
+                return o1.getPoints() > o2.getPoints() ? -1 : 1;
+            }
+        });
+
+        return gamificationListSorted.size() > 7 ? gamificationListSorted.subList(0, 7) : gamificationListSorted;
+    }
+
+
+
 }

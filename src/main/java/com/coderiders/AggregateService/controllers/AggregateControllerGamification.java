@@ -79,4 +79,11 @@ public class AggregateControllerGamification {
 
         return new ResponseEntity<>(gamificationService.getLeaderboard("LEADERBOARD"), HttpStatus.OK);
     }
+
+    @GetMapping("leaderboard/friends/")
+    public ResponseEntity<List<LeaderboardUser>> getLeaderBoardFriends(@RequestParam("clerk_id") String clerk_id) {
+        log.info("/leaderboard/friends GET ENDPOINT HIT with ClerkId: " + clerk_id);
+        return new ResponseEntity<>(gamificationService.getLeaderboardFriends(clerk_id), HttpStatus.OK);
+    }
+
 }
