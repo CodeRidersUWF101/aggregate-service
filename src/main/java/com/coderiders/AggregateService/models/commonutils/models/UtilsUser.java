@@ -1,15 +1,13 @@
 package com.coderiders.AggregateService.models.commonutils.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
 
 @Data
 @Builder
+@ToString
 @Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
